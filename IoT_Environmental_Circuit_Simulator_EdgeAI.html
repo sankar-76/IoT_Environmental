@@ -1,0 +1,367 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>IoT Environmental Circuit Simulator · Edge-AI</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<style>
+:root{--bg:#0d1117;--p:#161b22;--b:#30363d;--t:#c9d1d9;--m:#8b949e;--a:#58a6ff;--g:#3fb950;--w:#d29922;--r:#f85149;--ac:#2ee6c5;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--t);font:12px ui-monospace,Menlo,Consolas,monospace}
+#app{height:100%;display:grid;grid-template:auto minmax(0,1fr) 260px/190px minmax(0,1fr) 260px}
+#top{grid-column:1/4;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:5px 8px;min-height:36px;position:relative;background:var(--p);border-bottom:1px solid var(--b)}
+button,select{background:#21262d;color:var(--t);border:1px solid var(--b);padding:4px 9px;font:inherit;cursor:pointer;border-radius:2px}
+button:hover{border-color:var(--a)}.go{color:var(--g)}
+#st{margin-left:auto;padding:2px 8px;border:1px solid var(--b)}#bar{height:2px;background:var(--a);width:0;position:absolute;bottom:-1px;left:0}
+.side{background:var(--p);overflow:auto;padding:8px}.side h4{margin:10px 0 4px;color:var(--m);font-size:10px;letter-spacing:1px}
+.lib{display:flex;gap:6px;border:1px solid var(--b);padding:4px;margin-bottom:4px;cursor:grab;background:var(--bg)}.lib:hover{border-color:var(--a)}.lib small{color:var(--m);display:block;font-size:9px}
+#ws{position:relative;overflow:hidden}#svg{width:100%;height:100%;touch-action:none;display:block}
+.comp{cursor:move}.comp .body{stroke-width:1.5}.comp.sel .body{stroke:#fff;stroke-dasharray:4 2}
+.wire{fill:none;stroke-width:2.2;opacity:.9}.wire.on{stroke-width:4}.hit{fill:none;stroke:transparent;stroke-width:10;cursor:pointer}.tmp{stroke-dasharray:4}
+.pin{cursor:crosshair}.pin:hover{stroke:#fff;stroke-width:2}text{fill:var(--t)}.lb{font-size:8.5px;fill:#9aa4ae}.rd{font-size:9.5px;fill:#7ee787}.sd{font-size:7px;fill:var(--w)}
+.air{stroke:var(--a);stroke-dasharray:5 5;animation:fl .6s linear infinite;fill:none}@keyframes fl{to{stroke-dashoffset:-10}}
+.run .pt{animation:pt 1.6s linear infinite}@keyframes pt{from{transform:translateX(0)}to{transform:translateX(60px)}}
+.run .pls{animation:pl 1.2s ease-in-out infinite}@keyframes pl{50%{opacity:.2}}
+#bot{grid-column:1/4;background:var(--p);border-top:1px solid var(--b);display:grid;grid-template-columns:1.1fr 1fr 1fr;min-height:0}
+#bot>div{padding:8px;overflow:auto;border-right:1px solid var(--b);min-height:0}#bot>div:last-child{border-right:0}
+#c3{display:flex;flex-direction:column;padding:0!important;overflow:hidden!important}
+#tabs{display:flex;gap:4px;padding:6px 8px 4px;align-items:center}#tabs .on{border-color:var(--ac);color:var(--ac)}#pn{flex:1;overflow:auto;padding:4px 8px;min-height:0}
+#ser div{white-space:pre-wrap}#dash{display:none;gap:8px;flex-wrap:wrap}.card{border:1px solid var(--b);padding:6px 12px;min-width:90px;background:var(--bg)}.card b{font-size:18px;color:var(--a);display:block}
+#code{display:none;margin:0;font-size:10.5px;color:#aab;white-space:pre}#code span{display:block}#code .hl{background:#2ee6c52a}
+#gw{display:none;height:100%}#gc{width:100%;height:calc(100% - 26px)}
+.row{margin:6px 0}.row label{display:flex;justify-content:space-between;color:var(--m)}.row input{width:100%}
+#toast{position:absolute;left:50%;top:10px;transform:translateX(-50%);background:#3b1d1d;border:1px solid var(--r);color:#ffa198;padding:5px 12px;display:none}
+.badge{color:var(--w);font-size:9px}
+.ok{color:var(--g)}.bad{color:var(--r)}.warn{color:var(--w)}.dm{color:var(--m)}
+.seg{display:inline-flex;gap:2px}#top button.on{background:var(--ac);color:#04201b;border-color:var(--ac)}
+.stg{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.sg{padding:3px 6px;border:1px solid var(--b);border-radius:3px;color:var(--m);font-size:10px}.sg.d{color:var(--t);border-color:#35505a}.sg.a{background:var(--ac);color:#04201b;border-color:var(--ac);font-weight:700}
+.bar2{display:flex;align-items:center;gap:6px;margin:2px 0}.bar2 i{display:block;height:7px;background:var(--ac);border-radius:2px}
+.pk{cursor:pointer}
+.spin{animation:sp .5s linear infinite;transform-box:fill-box;transform-origin:center}@keyframes sp{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){.spin{animation-duration:2s}}
+.run .fb{animation:sp 1s linear infinite;transform-box:fill-box;transform-origin:center}
+#ov{position:absolute;inset:0;background:#0a0f12ee;display:none;padding:14px;overflow:auto}
+#bot h5{margin:10px 0 4px;color:var(--m);font-size:10px;letter-spacing:1px;font-weight:600}
+@media(max-width:900px){html,body{height:auto;min-height:100%}body{overflow:auto}#app{height:auto;grid-template:auto 160px 560px 420px auto/minmax(0,1fr)}#top,#bot{grid-column:1}#bot{grid-template-columns:minmax(0,1fr);grid-auto-rows:260px}}
+</style></head><body><div id="app">
+<div id="top"><b style="color:var(--a)">IoT SIMULATOR</b><span id="bdg" style="border:1px solid var(--w);color:var(--w);padding:2px 6px;border-radius:3px;font-size:10px">● SIMULATED</span><button class="go" id="bRun">▶ RUN</button><button id="bPause">⏸ PAUSE</button><button id="bReset">↻ RESET</button><button id="bSave">SAVE</button><button id="bOrtho">WIRES: ORTHO</button><span class="dm">Speed</span><span id="spd" class="seg"></span><span class="dm">Mode</span><span id="modes" class="seg"></span><select id="pre"><option value="">Load preset…</option><option value="1">1 · SPS30 + SCD41 + BME688</option><option value="2">2 · + MiCS-6814</option><option value="3">3 · Full node + OLED, relay, fan</option></select><button id="bOff">Disconnect network</button><button id="bRst">Reset sensors</button><select id="realm" title="A real-hardware adapter (WebSerial / WebSocket / MQTT) would plug into the same data source"><option>Source: simulation</option><option disabled>Real hardware (adapter not connected)</option></select><span id="st">STOPPED</span><div id="bar"></div></div>
+<div class="side" id="lib"></div>
+<div id="ws"><svg id="svg"></svg><div id="ov"></div><div id="toast"></div></div>
+<div class="side"><h4>ENVIRONMENT (drives sensors)</h4><div id="env"></div><h4>INSPECTOR</h4><div id="card" style="color:var(--m)"></div></div>
+<div id="bot"><div id="c1"></div><div id="c2"></div><div id="c3"><div id="tabs"><button data-t="ser" class="on">SERIAL</button><button data-t="code">CODE</button><button data-t="dash">CARDS</button><button data-t="gw">GRAPHS</button><span id="msg" style="margin-left:auto;color:var(--m)"></span></div><div id="pn"><div id="ser"></div><pre id="code"></pre><div id="dash"></div><div id="gw"><select id="gm"></select> <select id="gr"><option value="10">10 sec</option><option value="30">30 sec</option><option value="60" selected>1 min</option><option value="300">5 min</option></select><canvas id="gc"></canvas></div></div></div></div>
+</div>
+<svg id="meas" width="0" height="0" style="position:absolute;left:-9999px"><path id="mp"/></svg>
+<script>
+const $=s=>document.querySelector(s),svg=$('#svg');
+const K={p:'#e5534b',g:'#8b949e',sda:'#3fb950',scl:'#d29922',io:'#58a6ff',tx:'#bc8cff',rx:'#bc8cff',ant:'#f0883e'};
+const P=(id,l,k,s,o)=>({id,l,k,s,o}),f1=(v,d=1)=>(+v).toFixed(d),nz=()=>Math.random()-.5;
+const LV=['Excellent','Good','Moderate','Poor','Dangerous'],LC=['#3fb950','#7ee787','#d29922','#f0883e','#f85149'];
+const env={t:28,h:62,co2:720,co:1.2,nh3:.4,no2:.08,o2:20.8,pm1:12,pm25:18,pm10:24,voc:1,p:1008};
+const ENV0={...env},tgt={...env},ov={},src={t:0,c:0,k:0,b:0,v:0};
+const ENVDEF=[['t','Temperature','°C',-10,50,.5],['h','Humidity','%',0,100,1],['co2','CO₂','ppm',400,5000,10],['co','CO','ppm',0,50,.1],['nh3','NH₃','ppm',0,50,.1],['no2','NO₂','ppm',0,5,.01],['o2','O₂','%',15,23,.1],['pm1','PM1.0','µg/m³',0,200,1],['pm25','PM2.5','µg/m³',0,300,1],['pm10','PM10','µg/m³',0,450,1],['voc','VOC','',0,3,.1],['p','Pressure','hPa',950,1050,1]];
+const fmt=(k,v)=>{const m=ENVDEF.find(z=>z[0]==k);return k=='voc'?['Low','','High','Severe'][Math.max(0,Math.min(3,Math.round(v)))]:(+v).toFixed(m[5]>=1?0:m[5]>=.1?1:2)+' '+m[2]};
+const score=e=>(e.co2-400)/20+e.pm25*1.2+e.voc*12+e.co*3+Math.abs(e.h-50)/3,lvl=s=>s<25?0:s<50?1:s<80?2:s<120?3:4;
+const R=(d,x,y)=>`<rect x="${x}" y="${y}" width="${d}" height="${d}"/>`;
+const I2=(s)=>[P('vcc','VCC','p',s,28),P('gnd','GND','g',s,52),P('sda','SDA','sda',s,76),P('scl','SCL','scl',s,100)];
+const lv=(r,s)=>{const i=lvl(s);return LV[i]};
+const D={
+esp32:{n:'ESP32',w:130,h:230,c:'#1f6feb',ctrl:1,desc:'Wi-Fi/BT MCU',pr:'I²C·UART·GPIO',pins:[P('v33','3V3','p','l',30),P('gnd','GND','g','l',60),P('sda','IO21 SDA','sda','l',90),P('scl','IO22 SCL','scl','l',120),P('g4','IO4','io','l',150),P('g34','IO34 ADC','io','l',180),P('g5','IO5','io','r',30),P('tx','TX2','tx','r',60),P('rx','RX2','rx','r',90),P('gnd2','GND','g','r',120),P('v5','5V','p','r',150)],art:(c,W,H)=>`<rect x="${W/2-30}" y="20" width="60" height="60" fill="#0d1117" stroke="#555"/><path d="M${W/2-26} 100l8-8 8 8 8-8 8 8 8-8 8 8 8-8" stroke="#aaa" fill="none"/><rect x="${W/2-14}" y="${H-16}" width="28" height="16" fill="#8b949e"/><text x="${W/2}" y="55" text-anchor="middle" font-size="11">ESP32</text>`},
+uno:{n:'Arduino UNO Q',w:190,h:300,c:'#00979d',ctrl:1,desc:'Arduino controller · edge-AI',pr:'I²C·UART·GPIO',pins:[P('v33','3V3','p','l',30),P('gnd','GND','g','l',60),P('sda','A4 SDA','sda','l',90),P('scl','A5 SCL','scl','l',120),P('g4','D2','io','l',150),P('g34','A0','io','l',180),P('g5','D13','io','r',30),P('tx','TX','tx','r',60),P('rx','RX','rx','r',90),P('gnd2','GND','g','r',120),P('v5','5V','p','r',150)],art:(c,W,H)=>{const on=sim.pc==c.id&&sim.st=='RUNNING',l=i=>on&&sim.stg==i?'#2ee6c5':on&&sim.stg>i?'#1d6b60':'#10343a',b=sim.buf,x0=50,t=(x,y,s,st)=>`<text x="${x}" y="${y}" font-size="7"${st?` style="${st}"`:''}>${s}</text>`;
+let s=`<rect x="${W/2-20}" y="-8" width="40" height="14" fill="#8b949e" rx="2"/><rect x="${x0}" y="24" width="90" height="70" rx="4" fill="${l(1)}" stroke="#2ee6c5" stroke-opacity=".4"/>`+t(x0+5,36,'STM32U585','fill:#fff;font-weight:600')+t(x0+5,47,'Sensor acquisition')+t(x0+5,57,'GPIO · timing')+t(x0+5,67,'Actuation')+`<rect x="${x0}" y="104" width="90" height="70" rx="4" fill="${l(2)}" stroke="#2ee6c5" stroke-opacity=".4"/>`+t(x0+5,116,'Linux · A53','fill:#fff;font-weight:600')+t(x0+5,127,'Feature extraction')+t(x0+5,137,'Edge AI · classify',on&&sim.stg>=5?'fill:#fff':'')+t(x0+5,147,'Forecast')+t(x0+5,157,on&&sim.res?'→ '+sim.res.name.split(' ')[0]:'')+`<path d="M${x0+45} 94V104" stroke="#2ee6c5" stroke-width="2"/>`+t(x0,188,'SENSOR INPUT BUFFER');
+const nm={pm25:'PM2.5',pm10:'PM10',co:'CO',no2:'NO₂',co2:'CO₂',voc:'VOC',temp:'Temp',hum:'RH'};
+Object.keys(nm).forEach((k,i)=>{s+=t(x0,199+i*11,nm[k])+t(x0+55,199+i*11,b&&on&&b[k]!=null?(+b[k]).toFixed(k=='no2'?2:1):'—','fill:#fff')});return s}},
+mq135:{n:'MQ-135',w:110,h:118,c:'#d29922',desc:'Air quality (gas)',pr:'Analog',need:'io',io:'aout',q:['co2','co','voc'],pins:[P('vcc','VCC','p','r',30),P('gnd','GND','g','r',60),P('aout','AOUT','io','r',90)],art:()=>`<circle cx="42" cy="48" r="30" fill="#444" stroke="#999"/><circle cx="42" cy="48" r="20" fill="none" stroke="#777" stroke-dasharray="2 3"/>`,read:e=>{const g=80+(e.co2-400)*.25+e.nh3*40+e.co*15+e.voc*60,a=Math.min(4095,Math.round(g*3+300)),s=score(e);return{lines:[lv(0,s),`Gas ${f1(g,0)} ppm`,`ADC ${a}`,`Rs ${Math.round(2e4/(1+g/150))} Ω`],log:`MQ135 ADC=${a} gas=${f1(g,0)}ppm`,v:{}}}},
+dht22:{n:'DHT22',w:100,h:118,c:'#58a6ff',desc:'Temp + humidity',pr:'1-wire',need:'io',io:'data',q:['t','h'],pins:[P('vcc','VCC','p','r',30),P('data','DATA','io','r',60),P('gnd','GND','g','r',90)],art:()=>`<g fill="#0d1117" stroke="#58a6ff55">${[0,1,2,3].map(i=>R(6,14+i*10,22)+R(6,14+i*10,34)+R(6,14+i*10,46)).join('')}</g>`,read:e=>{const t=e.t+nz()*.4,h=e.h+nz();return{lines:[`Temp ${f1(t)} °C`,`Hum ${f1(h)} %`],log:`DHT22 T=${f1(t)}°C H=${f1(h)}%`,v:{t,h}}}},
+scd41:{n:'SCD-41',w:110,h:128,c:'#3fb950',desc:'CO₂ + T + RH',pr:'I²C',need:'i2c',addr:'0x62',vv:3.3,q:['co2','t','h'],pins:I2('r'),art:()=>`<rect x="14" y="24" width="30" height="30" fill="#0d1117" stroke="#3fb950"/><circle class="pls" cx="55" cy="20" r="3" fill="#3fb950"/>`,read:e=>{const c=e.co2+nz()*12,t=e.t-.3+nz()*.2,h=e.h-1+nz();return{lines:[`CO₂ ${f1(c,0)} ppm`,`Temp ${f1(t)} °C`,`Hum ${f1(h)} %`],log:`SCD41 CO2=${f1(c,0)}ppm`,v:{co2:c,t,h}}}},
+o2:{n:'DFRobot O₂',w:110,h:128,c:'#a371f7',desc:'Oxygen 0-25%',pr:'I²C',need:'i2c',addr:'0x73',vv:3.3,q:['o2'],pins:I2('r'),art:()=>`<circle cx="36" cy="50" r="22" fill="#0d1117" stroke="#a371f7"/><text x="36" y="54" text-anchor="middle" font-size="12">O₂</text>`,read:e=>{const o=e.o2+nz()*.06;return{lines:[`O₂ ${f1(o,2)} %`],log:`O2=${f1(o,2)}%`,v:{o2:o}}}},
+sps30:{n:'SPS30',w:130,h:128,c:'#f778ba',desc:'Particulate matter',pr:'I²C/MediumUART',need:'i2c',addr:'0x69',vv:5,q:['pm1','pm25','pm10'],pins:I2('r'),art:()=>`<rect x="10" y="20" width="70" height="26" fill="#0d1117" stroke="#f778ba"/><clipPath id="cp"><rect x="10" y="20" width="70" height="26"/></clipPath><g clip-path="url(#cp)" fill="#f778ba">${[0,1,2,3,4].map(i=>`<circle class="pt" cx="${-50+i*14}" cy="${26+(i*7)%16}" r="2"/>`).join('')}</g>`,read:e=>{const a=e.pm1+nz(),b=e.pm25+nz(),c=(e.pm25+e.pm10)/2,d=e.pm10+nz();return{lines:[`PM1.0 ${f1(a)} µg/m³`,`PM2.5 ${f1(b)}`,`PM4.0 ${f1(c)}`,`PM10 ${f1(d)}`],log:`SPS30 PM2.5=${f1(b)} PM10=${f1(d)}`,v:{pm1:a,pm25:b,pm10:d}}}},
+mics:{n:'MiCS-6814',w:120,h:128,c:'#ffa657',desc:'CO · NH₃ · NO₂',pr:'I²C',need:'i2c',addr:'0x04',vv:5,q:['co','nh3','no2'],pins:I2('r'),art:()=>`<rect x="14" y="22" width="26" height="26" fill="#0d1117" stroke="#ffa657"/><rect x="46" y="22" width="26" height="26" fill="#0d1117" stroke="#ffa657"/>`,read:e=>{const c=e.co+nz()*.1,n=e.nh3+nz()*.05,o=e.no2+nz()*.01;return{lines:[`CO ${f1(c,2)} ppm`,`NH₃ ${f1(n,2)} ppm`,`NO₂ ${f1(o,3)} ppm`,`Air ${LV[lvl(score(e))]}`],log:`MiCS CO=${f1(c,2)} NH3=${f1(n,2)} NO2=${f1(o,3)}`,v:{co:c,nh3:n,no2:o}}}},
+bme688:{n:'BME688',w:120,h:128,c:'#2dd4bf',desc:'T/RH/P/VOC/IAQ',pr:'I²C',need:'i2c',addr:'0x76',vv:3.3,q:['t','h','p','voc'],pins:I2('r'),art:()=>`<rect x="20" y="24" width="24" height="24" fill="#0d1117" stroke="#2dd4bf"/>`,read:e=>{const s=score(e),t=e.t-.2+nz()*.2,h=e.h-1+nz(),p=e.p+nz()*.3;return{lines:[`Temp ${f1(t)} °C`,`Hum ${f1(h,0)} %`,`Pres ${f1(p,0)} hPa`,`VOC ${['Low','Medium','High','Severe'][Math.round(e.voc)]}`,`IAQ ${LV[lvl(s)]}`],log:`BME688 P=${f1(p,0)}hPa IAQ=${LV[lvl(s)]}`,v:{t,h,p,iaq:s,voc:100+e.voc*50+nz()*3}}}},
+lora_a:{n:'LoRa A',w:110,h:120,c:'#8957e5',desc:'LoRa transmitter',pr:'UART/SPI',need:'uart',pins:[P('vcc','VCC','p','l',30),P('gnd','GND','g','l',55),P('tx','TX','tx','l',80),P('rx','RX','rx','l',100)],art:()=>`<path d="M82 40v-24M76 22a10 10 0 0 1 12 0" stroke="#bc8cff" fill="none"/>`},
+lora_b:{n:'LoRa B',w:110,h:120,c:'#8957e5',desc:'LoRa receiver',pr:'UART/SPI',need:'uart',pins:[P('vcc','VCC','p','l',30),P('gnd','GND','g','l',55),P('tx','TX','tx','l',80),P('rx','RX','rx','l',100)],art:()=>`<path d="M82 40v-24M76 22a10 10 0 0 1 12 0" stroke="#bc8cff" fill="none"/>`},
+a7670:{n:'SIMCom A7670C',w:150,h:150,c:'#da3633',desc:'4G LTE modem',pr:'UART',need:'uart',pins:[P('vcc','VCC','p','l',30),P('gnd','GND','g','l',55),P('tx','TX','tx','l',80),P('rx','RX','rx','l',105),P('ant','ANT','ant','r',75)],art:()=>`<rect x="40" y="20" width="50" height="34" fill="#0d1117" stroke="#da3633"/>`},
+ant:{n:'4G LTE Antenna',w:60,h:130,c:'#f0883e',desc:'LTE antenna',pr:'RF',pins:[P('ant','ANT','ant','b',30)],art:()=>`<rect x="26" y="8" width="8" height="90" fill="#f0883e"/>`},
+oled:{n:'OLED SSD1306',w:110,h:128,c:'#8b949e',desc:'128×64 I²C display',pr:'I²C',need:'i2c',addr:'0x3C',vv:3.3,pins:I2('l'),art:()=>{const b=sim.buf,r=sim.res,run=sim.st=='RUNNING';return`<rect x="34" y="20" width="66" height="44" fill="#000" stroke="#445"/><text x="38" y="34" font-size="8" style="fill:#7ff">${run?'CO2 '+(b&&b.co2!=null?Math.round(b.co2):'—'):'OLED'}</text><text x="38" y="46" font-size="7" style="fill:#7ff">${r?r.name.slice(0,14):''}</text>`}},
+relay:{n:'Relay module',w:120,h:120,c:'#1f6feb',desc:'GPIO-driven relay',pr:'GPIO',need:'io',io:'in',vv:5,nosug:['com','no'],pins:[P('vcc','VCC','p','l',30),P('gnd','GND','g','l',55),P('in','IN','io','l',80),P('com','COM','p','r',40),P('no','NO','p','r',70)],art:c=>`<rect x="36" y="16" width="50" height="44" fill="#2c6fe0" rx="3"/><text x="40" y="42" font-size="7" style="fill:#fff">SRD-05VDC</text><circle cx="42" cy="84" r="4" fill="${c.act?'#ff4d4d':'#443'}"/><text x="52" y="87" font-size="8">${c.act?'ON':'OFF'}</text>`},
+fan:{n:'Fan 5 V',w:110,h:90,c:'#8b949e',desc:'5 V cooling fan',pr:'Power',vv:5,nosug:['fp','fn'],pins:[P('fp','+','p','l',28),P('fn','−','g','l',54)],art:c=>`<circle cx="68" cy="42" r="24" fill="#111" stroke="#555"/><g class="${c.spin?'spin':''}" style="transform-box:fill-box;transform-origin:center"><path d="M68 42L68 20 76 28ZM68 42L90 42 82 50ZM68 42L68 64 60 56ZM68 42L46 42 54 34Z" fill="#8b949e"/></g>`},
+led:{n:'LED Bulb',w:80,h:120,c:'#d29922',desc:'Output · click to force',pr:'GPIO',pins:[P('a','+','io','l',40),P('k','–','g','l',75)],art:c=>`<g id="glw" opacity="${c.glow}"><circle cx="40" cy="40" r="38" fill="#ffd33d" opacity=".35"/>${[0,45,90,135,180,225,270,315].map(a=>`<line x1="40" y1="40" x2="${40+Math.cos(a*Math.PI/180)*48}" y2="${40+Math.sin(a*Math.PI/180)*48}" stroke="#ffd33d" stroke-width="1.5"/>`).join('')}</g><circle cx="40" cy="40" r="17" fill="${c.glow>.5?'#ffd33d':'#30363d'}" stroke="#aaa"/><rect x="31" y="56" width="18" height="12" fill="#8b949e"/>`}};
+// ---- realistic board art (replaces the box + block-diagram drawings)
+{const hole=(x,y)=>`<circle cx="${x}" cy="${y}" r="2.4" fill="#0d1117" stroke="#c9a227" stroke-width="1"/>`,
+PB=(W,H,c)=>`<rect width="${W}" height="${H}" rx="5" fill="${c}" stroke="#000" stroke-opacity=".55"/>${hole(7,7)}${hole(W-7,7)}${hole(7,H-7)}${hole(W-7,H-7)}`,
+T=(x,y,s,z,col,anc)=>`<text x="${x}" y="${y}" font-size="${z||8}"${anc?` text-anchor="${anc}"`:''} style="fill:${col||'#e6edf3'}">${s}</text>`,
+HD=(x,y,h)=>`<rect x="${x}" y="${y}" width="7" height="${h}" fill="#111"/>`,
+smd=(x,y,w,h)=>`<rect x="${x}" y="${y}" width="${w||6}" height="${h||9}" fill="#d9b44a" stroke="#7a5f10" stroke-width=".5"/>`;
+Object.assign(D.esp32,{real:1,w:176,h:240,art:(c,W,H)=>{const cx=W/2;
+return `<rect width="${W}" height="${H}" rx="5" fill="#161616" stroke="#000"/>`
++`<rect x="${cx-37}" y="4" width="74" height="74" fill="#3a3a3a"/><path d="M${cx-28} 40V14H${cx-18}V34H${cx-8}V14H${cx+2}V34H${cx+12}V14H${cx+22}V34" fill="none" stroke="#9a9a9a" stroke-width="2.2"/><circle cx="${cx+24}" cy="52" r="2.2" fill="#c9a227"/><circle cx="${cx+34}" cy="52" r="2.2" fill="#c9a227"/>`
++`<rect x="${cx-34}" y="46" width="68" height="86" rx="2" fill="#b4b4b4" stroke="#8a8a8a"/>`+T(cx,92,'ESP32',17,'#f4f4f4','middle')
++`<circle cx="${cx}" cy="113" r="11" fill="none" stroke="#8a8a8a" stroke-width="2.5"/><circle cx="${cx}" cy="113" r="5" fill="none" stroke="#8a8a8a" stroke-width="2"/>`
++`<g fill="#2a2a2a">${[0,1,2,3,4,5,6,7,8,9].map(i=>`<rect x="${cx-30+i*6.4}" y="134" width="3" height="5"/>`).join('')}</g>`
++`<rect x="${cx-16}" y="150" width="34" height="22" fill="#222" stroke="#444"/><rect x="${cx+20}" y="154" width="12" height="14" fill="#bbb"/>`
++smd(cx-28,150)+smd(cx-28,162)+smd(cx-22,176)+smd(cx+36,148)
++`<rect x="${cx-8}" y="184" width="26" height="26" rx="3" fill="#1d1d1d" stroke="#333"/>`
++T(cx-37,205,'EN',7,'#ddd','middle')+T(cx+37,205,'Boot',7,'#ddd','middle')
++`<rect x="${cx-46}" y="208" width="18" height="22" fill="#333"/><circle cx="${cx-37}" cy="219" r="6" fill="#111" stroke="#666"/><rect x="${cx+28}" y="208" width="18" height="22" fill="#333"/><circle cx="${cx+37}" cy="219" r="6" fill="#111" stroke="#666"/>`
++`<rect x="${cx-17}" y="${H-24}" width="34" height="24" fill="#d0d0d0" stroke="#999"/><rect x="${cx-11}" y="${H-18}" width="22" height="9" fill="#555"/>`}});
+var IOX=['d12','d11','d10','d9','d8','d7','d6','d5','d4','d3'];
+{const PT=16.4,U1=[['scl','SCL','scl'],['sda','SDA','sda'],[0,'AREF'],['gnd2','GND','g'],['g5','D13','io'],['d12','D12','io'],['d11','D11','io'],['d10','D10','io'],['d9','D9','io'],['d8','D8','io']],
+U2=[['d7','D7','io'],['d6','D6','io'],['d5','D5','io'],['d4','D4','io'],['d3','D3','io'],['g4','D2','io'],['tx','D1 TX','tx'],['rx','D0 RX','rx']],
+B1=[[0,'NC'],[0,'IOREF'],[0,'RESET'],['v33','3V3','p'],['v5','5V','p'],['gnd','GND','g'],['gnd3','GND','g'],['vin','VIN','p']],
+B2=[['g34','A0','io'],['a1','A1','io'],['a2','A2','io'],['a3','A3','io'],['a4','A4','io'],['a5','A5','io']],
+GX=[112,112+10*PT+5,176,176+8*PT+5],
+mkp=(arr,x0,s)=>arr.filter(a=>a[0]).map(a=>{const i=arr.indexOf(a),q=P(a[0],a[1],a[2],s,x0+i*PT+PT/2);q.i=10;return q});
+Object.assign(D.uno,{real:1,hl:1,w:440,h:340,pins:[...mkp(U1,GX[0],'t'),...mkp(U2,GX[1],'t'),...mkp(B1,GX[2],'b'),...mkp(B2,GX[3],'b')],art:(c,W,H)=>{const on=sim.pc==c.id&&sim.st=='RUNNING',soc=on&&sim.stg>=2?'#2ee6c5':'#050505',mcu=on&&sim.stg==1?'#2ee6c5':'#050505',t=Math.floor(sim.time);
+const hdr=(x0,arr,top)=>{let s=`<rect x="${x0}" y="${top?2:H-18}" width="${arr.length*PT}" height="16" fill="#101010" stroke="#000"/>`;arr.forEach((a,i)=>{const x=x0+i*PT+PT/2,y=top?10:H-10;s+=`<rect x="${x-4}" y="${y-4}" width="8" height="8" rx="1" fill="#2a2a2a" stroke="#6b6b6b" stroke-width=".6"/><text transform="translate(${x},${top?-4:H+4}) rotate(${top?-90:90})" x="0" y="3" font-size="8" style="fill:#9aa4ae">${a[1]}</text>`});return s};
+let s=`<rect width="${W}" height="${H}" rx="8" fill="#1b3b7c" stroke="#0a1a3d" stroke-width="1.5"/><rect x="0" y="190" width="30" height="110" fill="#1f6aa8" opacity=".55"/>`
++`<path d="M140 110H180M140 120H185M110 150H175M330 130H300M330 150H290M300 200H260M250 108H330" stroke="#2f56a8" stroke-width="1.2" fill="none" opacity=".7"/>`
++hdr(GX[0],U1,1)+hdr(GX[1],U2,1)+hdr(GX[2],B1,0)+hdr(GX[3],B2,0)
++`<rect x="10" y="5" width="44" height="36" rx="3" fill="#dfe3e6" stroke="#8a9096"/><circle cx="32" cy="23" r="12" fill="#b8bec3" stroke="#8a9096"/>`+`<text x="32" y="52" font-size="6.5" text-anchor="middle" style="fill:#fff">POWER</text>`
++`<rect x="0" y="72" width="46" height="60" rx="6" fill="#c9ced2" stroke="#888"/><rect x="8" y="86" width="30" height="32" rx="5" fill="#2a2e33"/><text x="30" y="142" font-size="6.5" style="fill:#fff">ON</text>`
++`<rect x="79" y="28" width="84" height="36" fill="#0e0e0e" stroke="#000"/>`+[0,1,2,3,4].map(i=>[0,1].map(j=>`<rect x="${85+i*15.5}" y="${34+j*14}" width="6" height="6" fill="#c9a227"/>`).join('')).join('')+`<text x="108" y="75" font-size="7" style="fill:#fff">JCTL</text>`
++`<rect x="178" y="38" width="98" height="65" rx="2" fill="#1a1a1a" stroke="#000"/><text x="227" y="74" font-size="6.5" text-anchor="middle" style="fill:#6b7782">LPDDR4</text>`
++`<rect x="185" y="112" width="88" height="85" rx="2" fill="#141414" stroke="${soc}" stroke-width="${on&&sim.stg>=2?2:1}"/><text x="229" y="150" font-size="8" text-anchor="middle" style="fill:#9aa5ad">QRB2210</text><text x="229" y="161" font-size="6.5" text-anchor="middle" style="fill:#6b7782">Qualcomm</text>`
++`<rect x="324" y="72" width="52" height="52" rx="3" fill="#141414" stroke="${mcu}" stroke-width="${on&&sim.stg==1?2:1}"/><rect x="324" y="72" width="52" height="52" rx="3" fill="none" stroke="#777" stroke-width="3" stroke-dasharray="1.2 2.2"/><text x="350" y="100" font-size="6" text-anchor="middle" style="fill:#9aa5ad">STM32U585</text>`
++[[32,'#c33'],[42,'#3a7'],[52,'#37c']].map(a=>`<circle cx="428" cy="${a[0]}" r="2.5" fill="${a[1]}" opacity=".9"/>`).join('')+`<text x="432" y="68" font-size="5" style="fill:#cfe">STM QRB</text>`
++`<rect x="398" y="172" width="30" height="46" fill="#0e0e0e" stroke="#000"/>`+[0,1,2].map(i=>[0,1].map(j=>`<rect x="${403+j*12}" y="${178+i*13}" width="6" height="6" fill="#c9a227"/>`).join('')).join('')+`<text x="400" y="230" font-size="6.5" style="fill:#fff">JSPI</text>`
++`<rect x="402" y="240" width="32" height="38" rx="2" fill="#e8e8e8" stroke="#999"/>`+[0,1,2,3].map(i=>`<rect x="${409+i*5}" y="246" width="2.5" height="12" fill="#c9a227"/>`).join('')+`<text x="400" y="288" font-size="6.5" style="fill:#fff">QWIIC</text>`
++`<circle cx="138" cy="170" r="9" fill="none" stroke="#fff" stroke-width="2"/><circle cx="154" cy="170" r="9" fill="none" stroke="#fff" stroke-width="2"/><path d="M134 170h8M150 170h8M154 166v8" stroke="#fff" stroke-width="1.6"/><text x="146" y="196" font-size="9" font-weight="700" text-anchor="middle" style="fill:#fff">ARDUINO</text>`
++`<rect x="122" y="205" width="52" height="19" fill="#0b0b0b" stroke="#fff" stroke-width=".8"/><text x="130" y="219" font-size="11" font-weight="700" style="fill:#fff">UNO</text><text x="157" y="219" font-size="11" font-weight="700" style="fill:#58a6ff">Q</text>`
++`<rect x="32" y="206" width="62" height="96" rx="2" fill="#e8e8e8" stroke="#aaa"/><circle cx="44" cy="217" r="4" fill="#c9a227" stroke="#7a5f10"/>`+[0,1,2,3,4].map(i=>[0,1,2,3,4].map(j=>(i*5+j*3+i*j)%3==0?`<rect x="${64+i*4}" y="${214+j*4}" width="4" height="4" fill="#111"/>`:'').join('')).join('')+`<text x="38" y="256" font-size="6" style="fill:#222">Model:</text><text x="38" y="265" font-size="6" style="fill:#222">WCBN3536A</text><text x="38" y="274" font-size="6" style="fill:#222">56.0DMVQ.014</text><text x="38" y="283" font-size="5.5" style="fill:#222">MAC:14B5CDOBF605</text>`
++`<rect x="148" y="236" width="44" height="40" fill="#151515" stroke="#000"/><circle cx="170" cy="256" r="14" fill="none" stroke="#555" stroke-width="2"/><circle cx="170" cy="256" r="6" fill="#333"/>`
++`<rect x="200" y="208" width="196" height="106" rx="2" fill="#16275a" stroke="#0a1a3d"/>`;
+for(let i=0;i<13;i++)for(let j=0;j<8;j++)s+=`<rect x="${206+i*14.6}" y="${214+j*12.6}" width="9" height="5" rx="1" fill="${on&&(i+j*2+t)%7==0?'#7ec8ff':'#d5dbe6'}"/>`;
+[[330,30],[210,22],[108,300],[330,205],[300,300]].forEach(a=>{s+=`<rect x="${a[0]}" y="${a[1]}" width="5" height="4" fill="#d9b44a"/><rect x="${a[0]+8}" y="${a[1]+2}" width="4" height="3" fill="#222"/>`});
+[[14,104],[426,148],[132,310],[424,306]].forEach(a=>{s+=`<circle cx="${a[0]}" cy="${a[1]}" r="6" fill="#0d1117" stroke="#c9a227" stroke-width="1.5"/>`});return s}})}
+Object.assign(D.mq135,{real:1,art:(c,W,H)=>PB(W,H,'#1b5aa6')+HD(W-7,14,86)+`<circle cx="40" cy="50" r="29" fill="#5d6770" stroke="#b0b8bf" stroke-width="2"/><circle cx="40" cy="50" r="21" fill="#79848d" stroke="#c9d1d6" stroke-dasharray="2 3"/><circle cx="40" cy="50" r="10" fill="#4b545c"/><rect x="14" y="90" width="26" height="18" fill="#2b6cb0" stroke="#0d3d73"/><circle cx="27" cy="99" r="5" fill="#e8c26a"/>`+T(50,104,'MQ-135',8)});
+Object.assign(D.dht22,{real:1,art:(c,W,H)=>`<rect x="4" y="8" width="54" height="98" rx="5" fill="#eceff1" stroke="#9aa5ad"/>`+[0,1,2].map(i=>[0,1,2,3,4,5].map(j=>`<rect x="${13+i*13}" y="${18+j*9}" width="7" height="5" fill="#b0bec5"/>`).join('')).join('')+T(31,100,'DHT22',9,'#37474f','middle')+`<path d="M58 30H100M58 60H100M58 90H100" stroke="#aab4bb" stroke-width="2"/>`});
+Object.assign(D.scd41,{real:1,art:(c,W,H)=>PB(W,H,'#1d4f7a')+HD(W-7,14,100)+`<rect x="14" y="22" width="36" height="36" fill="#c9d1d6" stroke="#8a97a0"/><circle cx="32" cy="40" r="10" fill="#7f8c96"/><circle cx="32" cy="40" r="4" fill="#33414a"/><circle class="pls" cx="62" cy="26" r="3" fill="#3fb950"/>`+smd(60,48)+smd(60,60)+T(14,84,'SCD-41',9)+T(14,96,'CO₂ · T · RH',7,'#9fb4c3')});
+Object.assign(D.o2,{real:1,art:(c,W,H)=>PB(W,H,'#23272e')+HD(W-7,14,100)+`<circle cx="38" cy="52" r="29" fill="#caa63a" stroke="#6b5a1e" stroke-width="2"/><circle cx="38" cy="52" r="19" fill="#e0c35a"/>`+T(38,57,'O₂',14,'#3b3000','middle')+T(14,100,'Gravity O₂',8)});
+Object.assign(D.sps30,{real:1,art:(c,W,H)=>`<rect x="4" y="8" width="86" height="112" rx="4" fill="#c3cad0" stroke="#7b868f"/><circle cx="47" cy="46" r="31" fill="#2a3036" stroke="#9aa5ad" stroke-width="2"/><g class="fb">${[0,120,240].map(a=>`<path d="M47 46L47 19Q64 30 47 46Z" fill="#7b8791" transform="rotate(${a} 47 46)"/>`).join('')}</g><circle cx="47" cy="46" r="5" fill="#1a1d20"/><rect x="22" y="92" width="50" height="9" rx="2" fill="#2a3036"/><clipPath id="cp"><rect x="22" y="92" width="50" height="9"/></clipPath><g clip-path="url(#cp)" fill="#f778ba">${[0,1,2,3,4].map(i=>`<circle class="pt" cx="${-30+i*14}" cy="${95+(i*3)%5}" r="2"/>`).join('')}</g>`+T(47,113,'SPS30',8,'#37474f','middle')+HD(W-7,14,100)});
+Object.assign(D.mics,{real:1,art:(c,W,H)=>PB(W,H,'#8c2f39')+HD(W-7,14,100)+`<rect x="14" y="20" width="42" height="42" rx="3" fill="#cfd5da" stroke="#7b868f"/><path d="M14 34H56M14 48H56M28 20V62M42 20V62" stroke="#8a95a0" stroke-width=".8"/>`+smd(66,26)+smd(66,40)+T(14,86,'MiCS-6814',9)+T(14,98,'CO · NH₃ · NO₂',7,'#f0c9cd')});
+Object.assign(D.bme688,{real:1,art:(c,W,H)=>PB(W,H,'#5b2d86')+HD(W-7,14,100)+`<rect x="20" y="22" width="32" height="32" fill="#222" stroke="#444"/><rect x="28" y="30" width="16" height="16" fill="#b9c0c6"/><circle cx="36" cy="38" r="2.5" fill="#222"/>`+smd(64,26)+smd(64,40)+smd(20,66,9,6)+T(14,86,'BME688',9)+T(14,98,'T · RH · P · VOC',7,'#d9c3ee')});
+const lora=(c,W,H)=>PB(W,H,'#1c4aa0')+`<rect x="36" y="18" width="52" height="48" fill="#b5bcc2" stroke="#7b868f"/>`+T(62,46,'SX1278',8,'#37474f','middle')+T(62,58,'Ra-02',6,'#586873','middle')+`<rect x="94" y="2" width="4" height="22" fill="#222"/><circle cx="96" cy="32" r="6" fill="#c9a227" stroke="#7a5f10"/>`+smd(40,76)+smd(52,76)+smd(64,76);
+Object.assign(D.lora_a,{real:1,art:lora});Object.assign(D.lora_b,{real:1,art:lora});
+Object.assign(D.a7670,{real:1,art:(c,W,H)=>PB(W,H,'#a62a2a')+`<rect x="46" y="18" width="62" height="48" fill="#b5bcc2" stroke="#7b868f"/>`+T(77,46,'A7670C',9,'#37474f','middle')+`<rect x="46" y="86" width="52" height="38" rx="2" fill="#2a2a2a" stroke="#555"/>`+T(72,108,'SIM',8,'#9aa5ad','middle')+`<circle cx="${W-44}" cy="75" r="6" fill="#c9a227" stroke="#7a5f10"/><path d="M${W-44} 75H${W}" stroke="#c9a227" stroke-width="2"/>`+T(14,142,'4G LTE Cat-1',7,'#f0c9cd')});
+Object.assign(D.ant,{real:1,art:()=>`<rect x="25" y="6" width="10" height="86" rx="5" fill="#1e1e1e" stroke="#555"/><rect x="21" y="92" width="18" height="14" fill="#c9a227" stroke="#7a5f10"/><rect x="26" y="106" width="8" height="24" fill="#8a7020"/>`});
+Object.assign(D.oled,{real:1,art:()=>{const b=sim.buf,r=sim.res,run=sim.st=='RUNNING';return PB(110,128,'#1b2733').replace('<circle','<circle')+`<rect x="30" y="14" width="74" height="52" fill="#05070a" stroke="#2f3c4a"/><rect x="35" y="19" width="64" height="42" fill="#000"/>`+T(39,34,run?'CO2 '+(b&&b.co2!=null?Math.round(b.co2):'—'):'OLED',8,'#7ff')+T(39,46,r?r.name.slice(0,14):'',7,'#7ff')+T(36,84,'SSD1306',8)+T(36,96,'128×64 I²C',7,'#8b9eb0')}});
+Object.assign(D.relay,{real:1,art:c=>PB(120,120,'#1f5aa8')+`<rect x="34" y="12" width="56" height="48" rx="3" fill="#2b6fd6" stroke="#174a99"/>`+T(62,38,'SRD-05VDC',7,'#fff','middle')+`<rect x="112" y="26" width="8" height="60" fill="#2e9e4d" stroke="#1d6b33"/><rect x="60" y="76" width="16" height="8" fill="#161616"/><circle cx="42" cy="86" r="4" fill="${c.act?'#ff4d4d':'#5a2a2a'}"/>`+T(52,89,c.act?'ON':'OFF',8)});
+Object.assign(D.fan,{real:1,art:c=>`<path d="M0 28H28" stroke="#e5534b" stroke-width="2"/><path d="M0 54H28" stroke="#8b949e" stroke-width="2"/><rect x="28" y="4" width="78" height="78" rx="8" fill="#202225" stroke="#444"/>${[[35,11],[99,11],[35,75],[99,75]].map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="2.5" fill="#0d1117"/>`).join('')}<circle cx="67" cy="43" r="31" fill="#0e0f10" stroke="#333"/><g class="${c.spin?'spin':''}" style="transform-box:fill-box;transform-origin:center">${[0,90,180,270].map(a=>`<path d="M67 43L67 15Q83 21 75 36Z" fill="#8b949e" transform="rotate(${a} 67 43)"/>`).join('')}</g><circle cx="67" cy="43" r="6" fill="#333" stroke="#555"/>`});
+Object.assign(D.led,{real:1,art:c=>`<g id="glw" opacity="${c.glow}"><circle cx="40" cy="40" r="38" fill="#ffd33d" opacity=".35"/>${[0,45,90,135,180,225,270,315].map(a=>`<line x1="40" y1="40" x2="${40+Math.cos(a*Math.PI/180)*48}" y2="${40+Math.sin(a*Math.PI/180)*48}" stroke="#ffd33d" stroke-width="1.5"/>`).join('')}</g><path d="M0 40H24M0 75H36" stroke="#aab4bb" stroke-width="2"/><path d="M26 44a16 16 0 1 1 28 0c-3 4-4 7-4 10H30c0-3-1-6-4-10z" fill="${c.glow>.5?'#ffe066':'#9fb3bf33'}" stroke="#b0bec5"/><path d="M34 54V42l3-4 3 4 3-4 3 4v12" fill="none" stroke="${c.glow>.5?'#fff3b0':'#78909c'}" stroke-width="1.2"/><rect x="30" y="56" width="20" height="16" fill="#9aa5ad" stroke="#6b7782"/><path d="M30 61H50M30 66H50" stroke="#6b7782"/><rect x="34" y="72" width="12" height="5" fill="#555"/>`});}
+D.esp32.pins.concat(D.uno.pins).forEach(p=>{if(p.id=='v33')p.v=3.3;if(p.id=='v5')p.v=5});
+const ORDER=[['CONTROLLERS',['esp32','uno']],['ENVIRONMENTAL SENSORS',['mq135','dht22','scd41','o2','sps30','mics','bme688']],['COMMUNICATION',['lora_a','lora_b','a7670','ant']],['DISPLAY',['oled']],['OUTPUT',['led','relay','fan']]];
+let comps=[],wires=[],sel=new Set(),selW=null,view={x:30,y:20,k:.8},ortho=true,uid=1,drag=null,manual=false,selPk=null,mode='circuit',pks=[],pkid=0;
+const sim={st:'STOPPED',msg:'',logs:[],hist:{},agg:{},lte:{stage:'idle',msg:'Idle',sig:0,tg:-1},pkt:'',rx:'',wave:0,tk:0,prog:0,tl:null,speed:1,time:0,pt:0,n:0,fired:[],stg:-1,buf:null,res:null,fc:null,rec:'',ex:null,rc:false,need:false,off:false,pc:null,seen:null,mag:0};
+const get=id=>comps.find(c=>c.id==id);
+function add(t,x,y){const c={id:t+'-'+uid++,type:t,x,y,rot:0,lines:[],glow:0};comps.push(c);return c}
+const wr=(a,b)=>wires.push({id:uid++,a,b});
+function pxy(k){const[i,p]=k.split('.'),c=get(i);if(!c)return null;const d=D[c.type],q=d.pins.find(z=>z.id==p),W=d.w,H=d.h;let x=q.s=='l'?0:q.s=='r'?W:q.o,y=q.s=='t'?(q.i||0):q.s=='b'?H-(q.i||0):q.o;if(q.s=='l'||q.s=='r')y=q.o;let dx=x-W/2,dy=y-H/2;for(let i=0;i<c.rot;i++)[dx,dy]=[-dy,dx];return{x:c.x+W/2+dx,y:c.y+H/2+dy,k:q.k,s:q.s,hl:!!d.hl&&!c.rot,bb:{x:c.x,y:c.y,w:W,h:H}}}
+const toast=m=>{const t=$('#toast');t.textContent='⚠ '+m;t.style.display='block';gsap.fromTo(t,{opacity:0},{opacity:1,duration:.2});gsap.to(t,{opacity:0,delay:2,duration:.4,onComplete:()=>t.style.display='none'})};
+const pl=k=>{const[i,p]=k.split('.'),c=get(i);return D[c.type].n.split(' ').pop()+'.'+D[c.type].pins.find(z=>z.id==p).l},wl=w=>pl(w.a)+' → '+pl(w.b);
+function connect(a,b,quiet){if(a==b)return;if(a.split('.')[0]==b.split('.')[0])return toast('Invalid connection: same component');
+const A=pxy(a).k,B=pxy(b).k;if(wires.some(w=>(w.a==a&&w.b==b)||(w.a==b&&w.b==a)))return;
+if((A=='p'&&B=='g')||(A=='g'&&B=='p'))return toast('Invalid connection: GND → power short');
+const ok=A==B||(A=='tx'&&B=='rx')||(A=='rx'&&B=='tx');
+if(!ok||A=='tx'&&B=='tx'){const i2=(A=='sda'||A=='scl')?a:(B=='sda'||B=='scl')?b:null,gp=A=='io'?a:B=='io'?b:null;
+ if(i2&&gp){const dn=k=>D[get(k.split('.')[0]).type];return toast(`Invalid connection: ${dn(i2).ctrl?'I²C pin':dn(i2).n+' requires I²C'}. The selected GPIO pin (${dn(gp).pins.find(z=>z.id==gp.split('.')[1]).l}) is not configured as I²C.`)}
+ return toast(`Invalid connection: ${A.toUpperCase()} ↔ ${B.toUpperCase()} incompatible`)}
+let warn=null;const isC=k=>!!D[get(k.split('.')[0]).type].ctrl,dv=k=>{const[i,p]=k.split('.');return(p=='vcc'||p=='fp')?D[get(i).type].vv||0:0},sv=k=>{const[i,p]=k.split('.');return D[get(i).type].pins.find(z=>z.id==p).v||0};
+[[a,b],[b,a]].forEach(([d,s])=>{if(!warn&&!isC(d)&&isC(s)&&dv(d)&&sv(s)&&Math.abs(dv(d)-sv(s))>.5)warn=`Voltage warning: ${D[get(d.split('.')[0]).type].n} expects ${dv(d)} V; ${pl(s)} supplies ${sv(s)} V`});
+[a,b].forEach(k=>{if(isC(k)&&pxy(k).k=='io'&&wires.some(w=>w.a==k||w.b==k))warn=warn||`GPIO conflict: ${pl(k)} is already used by another connection`});
+wires.push({id:uid++,a,b,warn:!!warn});if(warn&&!quiet)toast(warn)}
+// ---- circuit graph
+function nets(){const par={},f=x=>{if(par[x]===undefined)par[x]=x;return par[x]==x?x:(par[x]=f(par[x]))};wires.forEach(w=>{par[f(w.a)]=f(w.b)});return f}
+function ctrlIn(F,key,kind){const n=F(key);for(const c of comps)if(D[c.type].ctrl)for(const p of D[c.type].pins)if(p.k==kind&&F(c.id+'.'+p.id)==n)return c;return null}
+function link(c,F){const d=D[c.type],k=c.id+'.',powered=!!(ctrlIn(F,k+'vcc','p')&&ctrlIn(F,k+'gnd','g'));let ct=null;
+if(d.need=='i2c'){const a=ctrlIn(F,k+'sda','sda'),b=ctrlIn(F,k+'scl','scl');if(a&&a==b)ct=a}
+else if(d.need=='io')ct=ctrlIn(F,k+d.io,'io');
+else if(d.need=='uart'){const a=ctrlIn(F,k+'tx','rx'),b=ctrlIn(F,k+'rx','tx');if(a&&a==b)ct=a}
+return{powered,ct}}
+// ---- simulation
+function log(m){const t=new Date().toTimeString().slice(0,8);sim.logs.push(`[${t}] ${m}`);if(sim.logs.length>150)sim.logs.shift();const s=$('#ser'),d=document.createElement('div');d.textContent=sim.logs.at(-1);s.appendChild(d);while(s.children.length>150)s.firstChild.remove();$('#pn').scrollTop=1e9;gsap.from(d,{opacity:0,x:-8,duration:.3})}
+function startLTE(){const l=sim.lte;l.stage='s';l.msg='Searching Network...';gsap.delayedCall(1.4,()=>{if(l.stage!='s')return;l.stage='r';l.msg='Registering...';log('A7670C registering');gsap.delayedCall(1.4,()=>{if(l.stage!='r')return;l.stage='c';l.msg='4G Connected';log('A7670C 4G LTE connected')})})}
+function tick(){if(sim.st=='PAUSED'){ui();return}
+const run=sim.st=='RUNNING',F=nets();sim.agg={};const eff=effEnv(),sc=score(eff);if(run)sim.tk++;
+comps.forEach(c=>{const d=D[c.type],L=link(c,F);c.on=!!(run&&L.powered&&L.ct&&!c.fault);
+if(d.ctrl){c.lines=run?['RUNNING',comps.filter(x=>D[x.type].read&&link(x,F).ct==c).length+' sensors linked'].concat(sim.res&&sim.pc==c.id?['→ '+sim.res.name]:[]):['IDLE']}
+else if(d.read){if(c.on){const r=d.read(eff);c.lines=r.lines;for(const k in r.v)if(sim.agg[k]===undefined)sim.agg[k]=r.v[k];if(sim.tk%3==0)log(`[${D[L.ct.type].n}] ${r.log}`)}else{c.lines=[c.fault?'⚠ '+c.fault:run?(L.powered?'NO DATA LINK':'NO POWER'):'IDLE'];if(run&&c.fault&&sim.tk%3==0)log(`${d.n}: ${c.fault}${d.addr?' ('+d.addr+')':''}`)}}
+else if(c.type=='oled')c.lines=[c.on?'DISPLAY ON':run?(L.powered?'NO DATA LINK':'NO POWER'):'IDLE'];
+else if(c.type=='relay'){c.act=!!(run&&c.on&&sim.rc);c.lines=[c.on?(c.act?'IN HIGH · CLOSED':'IN LOW · OPEN'):run?(L.powered?'NO GPIO LINK':'NO POWER'):'IDLE']}
+c.L=L});
+const la=comps.find(c=>c.type=='lora_a'),lb=comps.find(c=>c.type=='lora_b'),a7=comps.find(c=>c.type=='a7670'),lt=sim.lte;
+if(la){la.lines=[la.on?(sim.pkt?'TX '+sim.pkt:'READY'):run?'OFFLINE':'IDLE'];if(la.on&&sim.tk%4==1&&sim.agg.co2!==undefined||la.on&&sim.tk%4==1&&sim.agg.t!==undefined){const g=sim.agg;sim.pkt=`CO2=${g.co2!==undefined?f1(g.co2,0):'-'} TEMP=${g.t!==undefined?f1(g.t):'-'} HUM=${g.h!==undefined?f1(g.h):'-'}`;log('LoRa A packet transmitted: '+sim.pkt);const pk=sim.pkt;gsap.fromTo(sim,{wave:0},{wave:1,duration:1,ease:'none',onComplete:()=>{sim.wave=0;if(lb&&lb.L&&lb.L.powered){sim.rx=pk;log('LoRa B packet received')}}})}}
+if(lb)lb.lines=[run&&lb.L.powered?(sim.rx?'RX '+sim.rx:'LISTENING'):'IDLE'];
+if(a7){const on=run&&a7.L.powered&&a7.L.ct,ant=comps.some(x=>x.type=='ant'&&F(x.id+'.ant')==F(a7.id+'.ant'));
+if(on&&lt.stage=='idle')startLTE();if(!on&&lt.stage!='idle'){lt.stage='idle';lt.msg='Idle'}
+const tg=lt.stage=='c'&&ant&&!sim.off?8:0;if(tg!=lt.tg){lt.tg=tg;gsap.to(lt,{sig:tg,duration:.8})}
+const n=Math.round(lt.sig);a7.lines=[on?'Power ● ON':'Power ○ OFF',sim.off&&lt.stage=='c'?'Uplink offline':lt.msg,'Signal '+'█'.repeat(n)+'░'.repeat(10-n),ant?'4G LTE':'⚠ Antenna disconnected']}
+const led=comps.find(c=>c.type=='led');if(led){const k=led.id+'.',ok=ctrlIn(F,k+'a','io')&&ctrlIn(F,k+'k','g');const hi=!!(run&&ok&&(manual||lvl(sc)>=3));led.lines=[ok?(hi?'GPIO HIGH · ON':'GPIO LOW · OFF'):'NOT WIRED'];const g=hi?1:0;if(led.tg!==g){led.tg=g;gsap.to(led,{glow:g,duration:.5,onUpdate:()=>{const e=document.getElementById('glw');if(e)e.setAttribute('opacity',led.glow)}})}}
+const rl=comps.find(c=>c.type=='relay');comps.filter(c=>c.type=='fan').forEach(fn=>{const ok=!!(rl&&rl.act&&F(rl.id+'.no')==F(fn.id+'.fp')&&ctrlIn(F,rl.id+'.com','p')&&ctrlIn(F,fn.id+'.fn','g'));fn.spin=ok;fn.lines=[ok?'FAN ON':'FAN OFF']});
+if(run){for(const m of MET){const v=sim.agg[m[0]]??(m[0]=='iaq'?sc:eff[m[0]]);(sim.hist[m[0]]=sim.hist[m[0]]||[]).push([Date.now(),v]);if(sim.hist[m[0]].length>320)sim.hist[m[0]].shift()}}
+dash(sc);ui()}
+// ---- edge-AI pipeline, data packets, event simulator, dashboard panels
+const effEnv=()=>Object.assign({},env,ov),mp=document.getElementById('mp'),HIS={pm25:[],no2:[],co:[],voc:[],co2:[]};
+const STN=['Sensors','MCU acquisition','Processing core','Feature extraction','Sensor fusion','Source classifier','Forecast','Decision'],ST=[1,1.8,2.4,2.9,3.3,3.7,4.1,4.5],CYC=6.5;
+const stgN=()=>{const p=get(sim.pc);return p&&p.type=='uno'?['Sensors','STM32 acquisition','Linux A53','Feature extraction','Sensor fusion','Source classifier','Forecast','Decision']:STN};
+function pctl(){const F=nets();let best=null,n=-1;comps.filter(c=>D[c.type].ctrl).forEach(c=>{const k=comps.filter(x=>D[x.type].read&&x.on&&link(x,F).ct==c).length;if(k>n){n=k;best=c}});return best}
+function diag(F){const bad=[],ad={};comps.forEach(c=>{const d=D[c.type];if(d.ctrl)return;const wired=wires.some(w=>w.a.startsWith(c.id+'.')||w.b.startsWith(c.id+'.'));if(wired&&(d.read||d.addr||d.need)&&!link(c,F).powered)bad.push(d.n+': GND/VCC not connected');if(d.addr){if(ad[d.addr])bad.push('I²C address conflict at '+d.addr);ad[d.addr]=1}});if(bad.length){toast(bad.slice(0,3).join(' · '));bad.forEach(b=>log('WARN '+b))}}
+function mkPk(wid,from,info,col,dur){info.status='IN TRANSIT';pks.push({id:++pkid,w:wid,from,t0:sim.time,dur,info,col})}
+function spawnPk(c,pc,r){const d=D[c.type],dp=d.pins.filter(p=>['sda','aout','data'].includes(p.id)).map(p=>c.id+'.'+p.id),an=d.io=='aout';wires.filter(w=>dp.includes(w.a)||dp.includes(w.b)).forEach(w=>{const from=dp.includes(w.a)?w.a:w.b;mkPk(w.id,from,{src:d.n,proto:d.need=='i2c'?'I²C @ '+d.addr:an?'Analog (ADC)':'1-wire',dst:D[pc.type].n,data:r.lines.join(' · '),ts:new Date().toTimeString().slice(0,8)},d.need=='i2c'?'#3fb950':'#58a6ff',1.2)})}
+function drawPk(){const g=document.getElementById('pl');if(!g||(!pks.length&&!g.firstChild))return;let s='';const live=sim.st=='RUNNING'||sim.st=='PAUSED';
+pks=pks.filter(k=>{const u=(sim.time-k.t0)/k.dur;if(u>=1||!live){k.info.status='DELIVERED';return false}const w=wires.find(x=>x.id==k.w);if(!w)return false;const A=pxy(w.a),B=pxy(w.b);if(!A||!B)return false;mp.setAttribute('d',path(A,B));const Ln=mp.getTotalLength(),pt=mp.getPointAtLength(Ln*(k.from==w.b?1-u:u));s+=`<circle class="pk" data-k="${k.id}" cx="${pt.x}" cy="${pt.y}" r="${selPk==k.info?7:5}" fill="${k.col}" stroke="#fff" stroke-width="1"/>`;return true});g.innerHTML=s}
+function actuate(pc,need){const rl=comps.find(c=>c.type=='relay'),w=rl&&pc?wires.find(w=>[w.a,w.b].includes(rl.id+'.in')&&[w.a,w.b].some(k=>k.startsWith(pc.id+'.'))):null;
+if(w){const from=w.a.startsWith(pc.id+'.')?w.a:w.b;mkPk(w.id,from,{src:D[pc.type].n,proto:'GPIO',dst:'Relay IN',data:'GPIO '+(need?'HIGH':'LOW')+' — '+(need?'ventilation / air-quality control':'air recovered'),ts:new Date().toTimeString().slice(0,8)},'#d29922',1);setTimeout(()=>{if(sim.st!='STOPPED')sim.rc=need;ui()},900/sim.speed);log('GPIO '+(need?'HIGH → RELAY ON → FAN ON':'LOW → RELAY OFF'))}
+else{sim.rc=need;if(rl)log('GPIO '+(need?'HIGH → RELAY ON':'LOW → RELAY OFF'))}}
+function fire(i){const pc=pctl(),N=stgN();sim.pc=pc?pc.id:null;
+if(i==0){sim.n++;const seen={},eff=effEnv();comps.filter(c=>D[c.type].read&&c.on&&pc&&c.L&&c.L.ct==pc).forEach(c=>{const r=D[c.type].read(eff);for(const k in r.v)if(seen[k]===undefined)seen[k]=r.v[k];spawnPk(c,pc,r)});sim.seen=seen;if(!Object.keys(seen).length)log('Pipeline: no sensor data reaches the controller — check wiring and power')}
+if(i==1){const s=sim.seen||{};sim.buf={pm25:s.pm25??null,pm10:s.pm10??null,co:s.co??null,no2:s.no2??null,nh3:s.nh3??null,co2:s.co2??null,voc:s.voc??null,temp:s.t??null,hum:s.h??null};log(N[1]+': acquisition frame #'+sim.n)}
+if(i==2)log(N[2]+': frame received'+(pc&&pc.type=='uno'?' via MCU↔MPU bridge':''));
+if(i==3){const b=sim.buf||{},g=(k,d)=>b[k]!=null?b[k]:d;sim.ex=[(g('pm25',12)-12)/80,(g('pm10',20)-20)/150,(g('co',.4)-.4)/4,(g('no2',.03)-.03)/.2,(g('voc',100)-100)/100,(g('co2',600)-600)/500].map(x=>Math.max(0,Math.min(1,x)));
+ [['pm25',0],['no2',3],['co',2],['voc',4],['co2',5]].forEach(([k,j])=>{HIS[k].push(sim.ex[j]);if(HIS[k].length>40)HIS[k].shift()});log('Features: '+sim.ex.map(x=>x.toFixed(2)).join(' '))}
+if(i==4)log('Sensor fusion: 6 channels merged');
+if(i==5&&sim.ex){const P={'TRAFFIC':[.6,.55,.8,1,.5,.35],'GARBAGE / BIOMASS BURNING':[1,.8,1,.15,.8,.7],'CONSTRUCTION DUST':[.5,1,.05,.02,.15,.05],'COOKING SMOKE':[.75,.25,.55,.05,.95,.8],'POOR VENTILATION':[.05,.05,.2,.05,.5,1]},x=sim.ex,mg=x.reduce((a,b)=>a+b,0),nrm=v=>Math.hypot(...v)||1;
+ if(mg<.45)sim.res={name:'CLEAN AIR',conf:.92,sig:x};else{const ks=Object.keys(P),cos=ks.map(k=>P[k].reduce((a,v,j)=>a+v*x[j],0)/(nrm(P[k])*nrm(x))),ex=cos.map(c=>Math.exp(c*9)),s=ex.reduce((a,b)=>a+b),m=ex.indexOf(Math.max(...ex));sim.res={name:ks[m],conf:ex[m]/s,sig:x}}
+ sim.mag=mg;log('Edge inference (simulated)');log('Source = '+sim.res.name);log('Confidence = '+sim.res.conf.toFixed(2))}
+if(i==6){const cur=sim.buf&&sim.buf.pm25!=null?sim.buf.pm25:12,act=sim.mag>=.45,m=act?[1.2,1.45,1.25,.9]:[1,.98,.96,.95];sim.fc={cur,f:m.map(k=>12+(cur-12)*k*(1+(Math.random()-.5)*.05))};log('Forecast PM2.5 +1..4h: '+sim.fc.f.map(v=>v.toFixed(0)).join(', '))}
+if(i==7&&sim.res){const n=sim.res.name,R={'TRAFFIC':'PM2.5 expected to increase. Avoid outdoor exercise near the main road for the next ~90 minutes.','GARBAGE / BIOMASS BURNING':'Smoke event likely. Close windows, wear a mask outdoors, report the burning source.','CONSTRUCTION DUST':'Coarse dust elevated. Keep windows closed on the site side; wet down the area.','COOKING SMOKE':'Cooking aerosols and VOC rising. Run the kitchen extraction.','POOR VENTILATION':'CO₂ is building up indoors. Ventilation required.','CLEAN AIR':'Air quality is good. No action needed.'},b=sim.buf||{},need=!!((b.co2>1000)||(b.pm25>55));sim.rec=R[n];log('Decision: '+sim.rec);if(need!==sim.need){sim.need=need;actuate(pc,need)}}
+sim.stg=i;ui()}
+let lastT=performance.now(),tacc=0;
+function loop(now){const dt=Math.min(.25,(now-lastT)/1000||0);lastT=now;
+for(const k in tgt)env[k]+=(tgt[k]-env[k])*Math.min(1,dt*sim.speed*.6);
+if(sim.st=='RUNNING'){const d=dt*sim.speed;sim.time+=d;sim.pt+=d;ST.forEach((t,i)=>{if(sim.pt>=t&&!sim.fired[i]){sim.fired[i]=1;fire(i)}});if(sim.pt>=CYC){sim.pt=0;sim.fired=[]}}
+tacc+=dt*sim.speed;if(tacc>=1){tacc-=1;tick()}
+drawPk();requestAnimationFrame(loop)}
+// events & pollution sources
+const EV={traffic:{t:.9,c:.15,k:0,b:0,v:0},burning:{t:.1,c:0,k:0,b:.9,v:0},construction:{t:.2,c:.95,k:0,b:0,v:0},cooking:{t:.05,c:0,k:.9,b:0,v:.3},crop:{t:0,c:0,k:0,b:1,v:0},clean:{t:.05,c:.05,k:0,b:0,v:0},vent:{t:.05,c:0,k:.1,b:0,v:.95}};
+const EVN={traffic:'Traffic',burning:'Garbage burning',construction:'Construction dust',cooking:'Cooking smoke',crop:'Crop burning',vent:'Indoor ventilation problem',clean:'Clean air'};
+const SRC=[['t','Traffic'],['c','Construction'],['k','Cooking'],['b','Burning'],['v','Poor ventilation']];
+function applySrc(){const{t,c,k,b,v}=src,r={pm25:12+60*t+25*c+55*k+110*b,pm10:20+75*t+190*c+35*k+95*b,co:.4+3.2*t+1.6*k+5*b+.3*v,no2:.03+.24*t+.02*k+.05*b,nh3:.2+.15*t+.4*k+.6*b,co2:600+220*t+380*k+450*b+700*v,voc:Math.min(3,Math.max(0,(55*t+40*c+110*k+95*b+80*v)/50))};r.pm1=r.pm25*.62;Object.assign(tgt,r);syncEnvUI()}
+function syncEnvUI(){SRC.forEach(([k])=>{const i=document.querySelector(`[data-s="${k}"]`);if(i){i.value=src[k];$('#s_'+k).textContent=(+src[k]).toFixed(2)}});ENVDEF.forEach(([k])=>{const i=document.querySelector(`[data-e="${k}"]`);if(i){i.value=tgt[k];$('#e_'+k).textContent=fmt(k,tgt[k])}})}
+function envUI(){$('#env').innerHTML=`<select id="evs" style="width:100%"><option value="">Simulate event…</option>${Object.keys(EV).map(k=>`<option value="${k}">${EVN[k]}</option>`).join('')}</select><button id="evt" style="width:100%;margin:4px 0">SIMULATE TRAFFIC</button><h4>POLLUTION SOURCES</h4>${SRC.map(([k,n])=>`<div class="row"><label>${n}<span id="s_${k}">${(+src[k]).toFixed(2)}</span></label><input type="range" min="0" max="1" step=".01" value="${src[k]}" data-s="${k}"></div>`).join('')}<h4>MANUAL VALUES</h4>${ENVDEF.map(([k,n,u,a,b,s])=>`<div class="row"><label>${n}<span id="e_${k}">${fmt(k,tgt[k])}</span></label><input type="range" min="${a}" max="${b}" step="${s}" value="${tgt[k]}" data-e="${k}"></div>`).join('')}`;
+document.querySelectorAll('[data-s]').forEach(i=>i.oninput=()=>{src[i.dataset.s]=+i.value;$('#s_'+i.dataset.s).textContent=(+i.value).toFixed(2);applySrc()});
+document.querySelectorAll('[data-e]').forEach(i=>i.oninput=()=>{tgt[i.dataset.e]=+i.value;$('#e_'+i.dataset.e).textContent=fmt(i.dataset.e,+i.value)});
+const ev=k=>{Object.assign(src,EV[k]);applySrc();log('Event: '+EVN[k]);if(sim.st=='STOPPED'||sim.st=='ERROR')runSim()};
+$('#evs').onchange=e=>{if(e.target.value){ev(e.target.value);e.target.value=''}};$('#evt').onclick=()=>ev('traffic')}
+// bottom dashboard (pipeline · result · forecast · correlation)
+function pbot(){const N=stgN(),run=sim.st=='RUNNING',stg=(x,i)=>`<span class="sg ${sim.stg==i&&run?'a':sim.stg>i&&run?'d':''}">${x}</span>`,r=sim.res;
+const bars=r?['PM2.5','PM10','CO','NO₂','VOC','CO₂'].map((n,i)=>`<div class="bar2"><span style="width:44px">${n}</span><i style="width:${Math.round(r.sig[i]*110)}px"></i></div>`).join(''):'';
+$('#c1').innerHTML=`<div class="stg">${N.map((x,i)=>stg(x,i)+(i<7?'<span class="dm">›</span>':'')).join('')}</div><div style="margin-top:8px">${r?`<span class="badge" style="border:1px solid var(--w);padding:1px 5px;border-radius:3px">SIMULATED MODEL OUTPUT · rule-based prototype matcher, not a trained network</span><div style="font-size:15px;font-weight:700;margin:6px 0 2px">${r.name}</div><span class="dm">Confidence ${(r.conf*100).toFixed(0)}%</span>${bars}${sim.rec?`<p><b class="${r.name=='CLEAN AIR'?'ok':'warn'}">${r.name=='CLEAN AIR'?'✓':'⚠'} ${sim.rec}</b></p>`:''}`:'<span class="dm">Press RUN to start the edge-AI pipeline.</span>'}</div>`;
+const f=sim.fc;let fc='';if(f){const mx=Math.max(f.cur,...f.f,40);fc=`<svg viewBox="0 0 260 90" style="width:100%">${[['now',f.cur],['+1h',f.f[0]],['+2h',f.f[1]],['+3h',f.f[2]],['+4h',f.f[3]]].map(([n,v],i)=>`<rect x="${12+i*50}" y="${75-v/mx*60}" width="34" height="${v/mx*60}" fill="${i?'#2ee6c5':'#8b949e'}" rx="2"/><text x="${12+i*50+17}" y="${70-v/mx*60}" text-anchor="middle" font-size="9">${v.toFixed(0)}</text><text x="${12+i*50+17}" y="87" text-anchor="middle" font-size="8">${n}</text>`).join('')}</svg>`}
+const cl={pm25:'#2ee6c5',no2:'#ff6b5a',co:'#d29922',voc:'#bc8cff',co2:'#8fd8ff'};
+const cr=`<svg viewBox="0 0 260 70" style="width:100%;background:#0d1117">${Object.keys(HIS).map(k=>`<polyline fill="none" stroke="${cl[k]}" stroke-width="1.4" points="${HIS[k].map((v,i)=>`${i*6.5},${66-v*60}`).join(' ')}"/>`).join('')}</svg><div>${Object.keys(cl).map(k=>`<span style="color:${cl[k]}">${k.toUpperCase()}</span>`).join(' ')}</div>`;
+$('#c2').innerHTML=`<h5 style="margin-top:0">EDGE FORECAST · PM2.5 µg/m³ <span class="badge">SIMULATED</span></h5>${fc||'<span class="dm">Waiting for first inference…</span>'}<h5>SENSOR CORRELATION (same event, all channels)</h5>${cr}`}
+function code(){const has=t=>comps.some(c=>c.type==t),L=[],a=(k,s)=>L.push([k,s]),pc=get(sim.pc)||comps.find(c=>D[c.type].ctrl),cn=pc?D[pc.type].n:'Controller';
+a('acq',`// ${cn} sketch — sensor acquisition`);
+if(has('sps30'))a('acq','sps30.read(&pm);              // I2C 0x69');
+if(has('scd41'))a('acq','scd41.read(&co2,&t,&rh);      // I2C 0x62');
+if(has('bme688'))a('acq','bme688.read(&voc,&p);        // I2C 0x76');
+if(has('mics'))a('acq','mics.read(&co,&nh3,&no2);      // I2C 0x04');
+if(has('o2'))a('acq','o2.read(&o2pct);              // I2C 0x73');
+if(has('dht22'))a('acq','dht.read(&t,&rh);            // 1-wire');
+if(has('mq135'))a('acq','gas = analogRead(A0);        // MQ-135 ADC');
+a('proc','// Data processing');a('proc','x = normalize(pm25,pm10,co,no2,voc,co2)');
+a('ai','// Edge AI inference');a('ai','src = classifier.predict(x)   // TRAFFIC…');a('ai','fc  = forecaster.predict(history)');
+a('act','// Actuator control');
+if(has('relay'))a('act','digitalWrite(RELAY, co2>1000||pm25>55);');
+if(has('led'))a('act','digitalWrite(LED, iaqLevel>=3);');
+if(has('oled'))a('act','oled.print(co2, src);');
+if(has('lora_a'))a('act','lora.send(packet);');
+const m={0:'acq',1:'acq',2:'proc',3:'proc',4:'proc',5:'ai',6:'ai',7:'act'}[sim.stg];
+$('#code').innerHTML=L.map(([k,s])=>`<span class="${k==m&&sim.st=='RUNNING'?'hl':''}">${s.replace(/</g,'&lt;')}</span>`).join('')}
+function ovl(){const o=$('#ov');o.style.display=mode=='ai'?'block':'none';if(mode!='ai')return;const r=sim.res,f=sim.fc,N=stgN(),run=sim.st=='RUNNING',d=['PM2.5 / PM10 / CO / NO₂ / VOC / CO₂ / T / RH from linked sensors','Controller samples I²C + ADC and timestamps the frame','Frame handed to the processing core','Normalised excess over clean-air baseline: '+(sim.ex?sim.ex.map(x=>x.toFixed(2)).join(' '):'—'),'Channels merged into one vector',r?`${r.name} · ${(r.conf*100).toFixed(0)}% (simulated)`:'—',f?'+1..4 h PM2.5: '+f.f.map(v=>v.toFixed(0)).join(', '):'—',sim.rec||'—'];
+o.innerHTML='<b>AI PIPELINE</b><div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">'+N.map((x,i)=>`<div class="stg"><span class="sg ${sim.stg==i&&run?'a':sim.stg>i&&run?'d':''}" style="min-width:150px;padding:8px">${x}</span><span class="dm">${d[i]}</span></div>`+(i<7?'<span class="dm">↓</span>':'')).join('')+'</div>'}
+const MET=[['t','Temperature °C'],['h','Humidity %'],['co2','CO₂ ppm'],['o2','O₂ %'],['pm25','PM2.5 µg/m³'],['co','CO ppm'],['nh3','NH₃ ppm'],['no2','NO₂ ppm'],['p','Pressure hPa'],['iaq','IAQ score']];
+const tw=(el,v,d)=>{const o={v:+el.dataset.v||0};el.dataset.v=v;gsap.to(o,{v,duration:.5,onUpdate:()=>el.textContent=o.v.toFixed(d)})};
+function dash(sc){const A=sim.agg,r=sim.st=='RUNNING';[['co2','CO₂','ppm',0],['t','TEMP','°C',1],['h','HUMIDITY','%',1],['o2','O₂','%',1],['pm25','PM2.5','µg/m³',1]].forEach(([k,n,u,d])=>{const e=$('#v-'+k);if(!e)return;if(A[k]!==undefined&&r){tw(e,A[k],d);}else e.textContent='—'});const i=$('#v-iaq');i.textContent=r?LV[lvl(sc)].toUpperCase():'—';i.style.color=LC[lvl(sc)];drawG()}
+function drawG(){if($('#gw').style.display!='block')return;const cv=$('#gc'),W=cv.width=cv.clientWidth,H=cv.height=cv.clientHeight,x=cv.getContext('2d'),m=$('#gm').value,rg=+$('#gr').value*1000,now=Date.now(),pts=(sim.hist[m]||[]).filter(p=>now-p[0]<=rg);x.fillStyle='#0d1117';x.fillRect(0,0,W,H);x.strokeStyle='#21262d';for(let i=1;i<4;i++){x.beginPath();x.moveTo(0,H*i/4);x.lineTo(W,H*i/4);x.stroke()}
+if(pts.length<2){x.fillStyle='#8b949e';x.fillText('Run the simulation to record data',10,20);return}
+let lo=Math.min(...pts.map(p=>p[1])),hi=Math.max(...pts.map(p=>p[1]));if(hi-lo<1e-6){hi+=1;lo-=1}x.strokeStyle='#58a6ff';x.lineWidth=1.6;x.beginPath();pts.forEach((p,i)=>{const px=W-(now-p[0])/rg*W,py=H-6-(p[1]-lo)/(hi-lo)*(H-14);i?x.lineTo(px,py):x.moveTo(px,py)});x.stroke();x.fillStyle='#8b949e';x.fillText(f1(hi,2),4,10);x.fillText(f1(lo,2),4,H-2);x.fillStyle='#7ee787';x.fillText(f1(pts.at(-1)[1],2),W-60,12)}
+// ---- run control
+function runSim(){if(sim.st=='PAUSED'){sim.st='RUNNING';return ui()}if(sim.st=='RUNNING'||sim.st=='INITIALIZING')return;
+if(!comps.some(c=>D[c.type].ctrl)){sim.st='ERROR';sim.msg='No controller on workspace';return ui()}
+sim.st='INITIALIZING';sim.tk=0;sim.pkt='';sim.rx='';const F=nets(),S=['Initialize components','Check connections','Power components','Initialize sensors','Initialize controllers','Initialize LoRa','Initialize A7670C'];diag(F);
+sim.tl=gsap.timeline({onComplete:()=>{sim.st='RUNNING';sim.msg='';sim.pt=0;sim.fired=[];sim.stg=-1;log('Simulation started');ui()}});
+S.forEach((s,i)=>sim.tl.call(()=>{sim.msg=s+'…';sim.prog=(i+1)/S.length;log(s);if(i==1)log(`${wires.length} wires validated`);if(i==3)comps.forEach(c=>{if(D[c.type].read||D[c.type].addr){const L=link(c,F);log(`${D[c.type].n} ${L.powered&&L.ct?'connected'+(D[c.type].addr?' @ '+D[c.type].addr:''):'NOT connected'}`)}});ui()},null,i*.5));
+sim.tl.call(()=>{},null,S.length*.5)}
+function reset(){sim.tl&&sim.tl.kill();gsap.killTweensOf(sim);gsap.killTweensOf(sim.lte);Object.assign(sim,{st:'STOPPED',msg:'',logs:[],hist:{},agg:{},pkt:'',rx:'',wave:0,tk:0,prog:0,time:0,pt:0,n:0,fired:[],stg:-1,buf:null,res:null,fc:null,rec:'',ex:null,rc:false,need:false,pc:null,seen:null,mag:0});pks=[];selPk=null;for(const k in HIS)HIS[k]=[];Object.assign(sim.lte,{stage:'idle',msg:'Idle',sig:0,tg:-1});$('#ser').innerHTML='';comps.forEach(c=>{c.glow=0;c.tg=undefined;c.act=false;c.spin=false});ui()}
+// ---- render
+const path0=(A,B)=>ortho?`M${A.x} ${A.y}H${(A.x+B.x)/2}V${B.y}H${B.x}`:`M${A.x} ${A.y}L${B.x} ${B.y}`,hv=P=>!!(P&&P.hl&&(P.s=='t'||P.s=='b'));
+const path=(A,B)=>{if(!ortho||hv(A)==hv(B))return path0(A,B);const top=hv(B),P=top?A:B,Q=top?B:A,ln=((Q.x/16)|0)%4,ly=Q.s=='t'?Q.bb.y-56-ln*5:Q.bb.y+Q.bb.h+110+ln*5,lx=P.x<Q.bb.x+Q.bb.w/2?Q.bb.x-14-ln*5:Q.bb.x+Q.bb.w+14+ln*5,pts=[[P.x,P.y],[lx,P.y],[lx,ly],[Q.x,ly],[Q.x,Q.y]];if(!top)pts.reverse();return 'M'+pts.map(q=>q.join(' ')).join('L')};
+function cs(c){const d=D[c.type],W=d.w,H=d.h;let s=`<g class="comp${sel.has(c.id)?' sel':''}" data-id="${c.id}" opacity="${mode=='flow'&&!d.ctrl?.45:1}"><g transform="translate(${c.x},${c.y}) rotate(${c.rot*90} ${W/2} ${H/2})">${d.real?`<rect class="body" width="${W}" height="${H}" rx="4" fill="transparent" stroke="transparent"/>${d.art(c,W,H)}<text x="${W/2}" y="${d.hl?-38:-6}" text-anchor="middle" font-size="9" style="fill:#8b949e">${d.n}</text>`:`<rect class="body" width="${W}" height="${H}" rx="3" fill="${d.c}22" stroke="${d.c}"/><text x="${W/2}" y="${H-6}" text-anchor="middle" font-size="9" fill="${d.c}">${d.n}</text>${d.art(c,W,H)}`}`;
+d.pins.forEach(p=>{const x=p.s=='l'?0:p.s=='r'?W:p.o,y=p.s=='t'?(p.i||0):p.s=='b'?H-(p.i||0):p.o,ax=p.s=='l'?9:p.s=='r'?W-9:x;s+=`<circle class="pin" data-pin="${p.id}" cx="${x}" cy="${y}" r="5" fill="${K[p.k]}" stroke="#0d1117"/>`;if(p.s=='l'||p.s=='r')s+=`<text class="lb" x="${ax}" y="${y+3}" text-anchor="${p.s=='l'?'start':'end'}">${p.l}</text>`});
+s+=`</g><g transform="translate(${c.x},${c.y+H+12+(d.hl?34:0)})">`;if(d.read||['lora_a','lora_b','a7670','led','oled','relay','fan'].includes(c.type)){c.lines.forEach((l,i)=>s+=`<text class="rd" y="${i*11}">${l.length>30?l.slice(0,30)+'…':l}</text>`);if(d.read)s+=`<text class="sd" y="${c.lines.length*11}">SIMULATED DATA</text>`}else if(d.ctrl)c.lines.forEach((l,i)=>s+=`<text class="rd" y="${i*11}">${l}</text>`);
+return s+'</g></g>'}
+function render(){let s=`<defs><pattern id="gp" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#1c232c"/></pattern></defs><g transform="translate(${view.x},${view.y}) scale(${view.k})"><rect x="-6000" y="-6000" width="12000" height="12000" fill="url(#gp)"/>`;
+wires.forEach(w=>{const A=pxy(w.a),B=pxy(w.b);if(!A||!B)return;const d=path(A,B);s+=`<path d="${d}" class="wire${selW==w.id?' on':''}" stroke="${w.warn?'#d29922':K[A.k]}"${w.warn?' stroke-dasharray="5 3"':''}/><path d="${d}" class="hit" data-w="${w.id}"/>`});
+if(drag&&drag.t=='wire'){const A=pxy(drag.from);s+=`<path d="${path(A,drag)}" class="wire tmp" stroke="${K[A.k]}"/>`}
+comps.forEach(c=>s+=cs(c));
+const la=comps.find(c=>c.type=='lora_a'),lb=comps.find(c=>c.type=='lora_b');if(la&&lb){const a={x:la.x+55,y:la.y+60},b={x:lb.x+55,y:lb.y+60};if(sim.wave>0){const w=sim.wave;s+=`<path class="air" d="M${a.x} ${a.y}L${b.x} ${b.y}"/><circle cx="${a.x+(b.x-a.x)*w}" cy="${a.y+(b.y-a.y)*w}" r="6" fill="#58a6ff"/><text x="${a.x+20}" y="${(a.y+b.y)/2}" fill="#58a6ff">))))) ${sim.pkt}</text>`}}
+svg.innerHTML=s+'<g id="pl"></g></g>';svg.classList.toggle('run',sim.st=='RUNNING');drawPk()}
+function suggest(c){const d=D[c.type],u=comps.filter(x=>D[x.type].ctrl).sort((a,b)=>Math.abs(a.x-c.x)-Math.abs(b.x-c.x))[0],r=[];if(!u||d.ctrl)return r;const ud=D[u.type],side=c.x<u.x?'l':'r',picked=new Set(),has=id=>ud.pins.some(p=>p.id==id),used=id=>picked.has(id)||wires.some(w=>w.a==u.id+'.'+id||w.b==u.id+'.'+id);
+d.pins.forEach(q=>{if((d.nosug||[]).includes(q.id))return;let t=null;
+ if(q.k=='p')t=(q.id=='vcc'&&d.vv==5)?'v5':'v33';
+ else if(q.k=='g')t=side=='l'?'gnd':'gnd2';
+ else if(q.k=='sda')t='sda';else if(q.k=='scl')t='scl';
+ else if(q.k=='tx')t='rx';else if(q.k=='rx')t='tx';
+ else if(q.k=='io'){const o={aout:['g34','g4','g5'],data:['g4','g5','g34'],in:['g5','g4','g34'],a:['g5','g4','g34']}[q.id]||['g4','g5','g34'];t=o.concat(IOX).find(id=>has(id)&&!used(id));if(t)picked.add(t)}
+ if(t&&has(t))r.push([c.id+'.'+q.id,u.id+'.'+t])});return r}
+function accSug(id){suggest(get(id)).forEach(([a,b])=>connect(a,b,true));ui()}
+function flt(id,f){get(id).fault=f;ui()}
+function clrOv(){for(const k in ov)delete ov[k];ui()}
+function delW(){wires=wires.filter(w=>w.id!=selW);selW=null;ui()}
+function delSel(){comps=comps.filter(c=>!sel.has(c.id));wires=wires.filter(w=>get(w.a.split('.')[0])&&get(w.b.split('.')[0]));sel.clear();ui()}
+function insp(){const eff=effEnv();
+if(selPk){const i=selPk,L=(t,v)=>`<div class="dm" style="margin-top:5px">${t}</div>${v}`;return `<b>DATA PACKET</b>`+L('Source',i.src)+L('Protocol',i.proto)+L('Destination',i.dst)+L('Data',`<span class="ok">${i.data}</span>`)+L('Timestamp',i.ts)+L('Status',`<span class="${i.status=='DELIVERED'?'dm':'ok'}">${i.status}</span>`)}
+if(selW!=null){const w=wires.find(x=>x.id==selW);if(w)return `<b>WIRE</b><div>${wl(w)}</div>${w.warn?'<div class="warn">⚠ Flagged connection (voltage or GPIO conflict)</div>':''}<p><button onclick="delW()">Remove wire</button></p>`}
+const c=sel.size==1?get([...sel][0]):null;
+if(c){const d=D[c.type];let h=`<b>${d.n}</b> <span class="badge">${c.id}</span><div style="color:var(--m)">${d.desc} · ${d.pr}</div><div>pos ${c.x},${c.y} rot ${c.rot*90}°</div>${d.addr?`<div>I²C address <b>${d.addr}</b></div>`:''}${d.vv?`<div>Supply <b>${d.vv} V</b></div>`:''}<div>pins: ${d.pins.map(p=>p.l).join(', ')}</div><div class="ok" style="margin-top:6px">${c.lines.join('<br>')}</div>${d.read?'<div class="badge">SIMULATED DATA</div>':''}`;
+ if(d.q){h+='<h4>LIVE VALUES (drag to override)</h4>'+d.q.map(k=>{const m=ENVDEF.find(z=>z[0]==k);return `<div class="row"><label>${m[1]}<span>${fmt(k,eff[k])}</span></label><input type="range" min="${m[3]}" max="${m[4]}" step="${m[5]}" value="${eff[k]}" oninput="ov['${k}']=+this.value;this.previousElementSibling.lastChild.textContent=fmt('${k}',+this.value)"></div>`}).join('')+'<button onclick="clrOv()">Release overrides</button>'}
+ const mine=wires.filter(w=>w.a.split('.')[0]==c.id||w.b.split('.')[0]==c.id);
+ h+='<h4>CONNECTIONS</h4>'+(mine.map(w=>`<div>${wl(w)}${w.warn?' <span class="warn">⚠</span>':''}</div>`).join('')||'<span class="dm">none</span>');
+ if(!d.ctrl){const sg=suggest(c);h+='<h4>SUGGEST WIRING</h4>'+(sg.length?sg.map(([a,b])=>`<div>${pl(a)} → ${pl(b)}</div>`).join('')+`<button onclick="accSug('${c.id}')">Accept suggestion</button>`:'<span class="dm">Place a controller first</span>')}
+ if(d.read)h+=`<h4>FAULTS</h4><button onclick="flt('${c.id}','')">OK</button> <button onclick="flt('${c.id}','DISCONNECTED')">Disconnect</button> <button onclick="flt('${c.id}','SENSOR ERROR')">Sensor error</button>`;
+ return h+'<p><button onclick="delSel()">Remove component</button></p>'}
+return `<div class="dm">Select a component</div><h4>WIRE LEGEND</h4><div style="line-height:1.7"><span style="color:#e5534b">━ Power</span> <span style="color:#8b949e">━ GND</span><br><span style="color:#3fb950">━ I²C SDA</span> <span style="color:#d29922">━ SCL</span><br><span style="color:#bc8cff">━ UART</span> <span style="color:#58a6ff">━ GPIO / analog</span> <span style="color:#d29922">┅ warning</span></div><h4>HOW TO USE</h4><div class="dm">Load a preset (or drag parts in), press RUN, then simulate an event such as Traffic. Drag from a pin to wire. Click a moving dot to inspect its packet. Del = delete · R = rotate · Shift = multi-select · wheel = zoom · drag background = pan.</div><h4>NETWORK</h4><div>Internet: ${sim.off?'<span class="bad">✕ OFFLINE</span>':'<span class="ok">✓ ONLINE</span>'}</div><div class="ok">✓ Sensors → AI → decision runs locally</div>${sim.off?'<div class="dm" style="margin-top:4px">LTE uplink is down; the local pipeline is unaffected.</div>':''}`}
+function ui(){const e=$('#st');e.textContent=sim.st;e.style.color={RUNNING:'var(--g)',ERROR:'var(--r)',INITIALIZING:'var(--w)',PAUSED:'var(--w)'}[sim.st]||'var(--m)';$('#msg').textContent=sim.msg;$('#bar').style.width=(sim.st=='INITIALIZING'?sim.prog*100:0)+'%';
+const ae=document.activeElement,busy=ae&&ae.type=='range'&&$('#card').contains(ae);if(!busy)$('#card').innerHTML=insp();
+render();pbot();code();ovl()}
+// ---- events
+const toW=e=>{const r=svg.getBoundingClientRect();return{x:(e.clientX-r.left-view.x)/view.k,y:(e.clientY-r.top-view.y)/view.k}},sn=v=>Math.round(v/10)*10;
+svg.addEventListener('pointerdown',e=>{const t=e.target,p=toW(e),cm=t.closest&&t.closest('.comp'),pe=t.closest&&t.closest('.pk');selPk=null;if(pe){const k=pks.find(z=>z.id==+pe.dataset.k);selPk=k?k.info:null;sel.clear();selW=null;ui();return}
+if(t.dataset.pin)drag={t:'wire',from:cm.dataset.id+'.'+t.dataset.pin,x:p.x,y:p.y};
+else if(cm){const id=cm.dataset.id;if(e.shiftKey)sel.has(id)?sel.delete(id):sel.add(id);else if(!sel.has(id)){sel.clear();sel.add(id)}selW=null;drag={t:'move',sx:p.x,sy:p.y,mv:0,id,o:[...sel].map(i=>{const c=get(i);return[c,c.x,c.y]})}}
+else if(t.dataset.w){selW=+t.dataset.w;sel.clear()}
+else{sel.clear();selW=null;drag={t:'pan',sx:e.clientX,sy:e.clientY,vx:view.x,vy:view.y}}ui()});
+addEventListener('pointermove',e=>{if(!drag)return;if(drag.t=='pan'){view.x=drag.vx+e.clientX-drag.sx;view.y=drag.vy+e.clientY-drag.sy}else{const p=toW(e);if(drag.t=='wire'){drag.x=p.x;drag.y=p.y}else{const dx=p.x-drag.sx,dy=p.y-drag.sy;if(Math.abs(dx)+Math.abs(dy)>3)drag.mv=1;drag.o.forEach(([c,x,y])=>{c.x=sn(x+dx);c.y=sn(y+dy)})}}render()});
+addEventListener('pointerup',e=>{if(!drag)return;if(drag.t=='wire'){const el=document.elementFromPoint(e.clientX,e.clientY);if(el&&el.dataset&&el.dataset.pin){const cm=el.closest('.comp');if(cm)connect(drag.from,cm.dataset.id+'.'+el.dataset.pin)}}
+if(drag.t=='move'&&!drag.mv&&get(drag.id).type=='led'){manual=!manual;log('LED override '+(manual?'ON':'OFF'))}drag=null;ui()});
+svg.addEventListener('wheel',e=>{e.preventDefault();const r=svg.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top,k=Math.min(2.5,Math.max(.3,view.k*(e.deltaY<0?1.1:.9)));view.x=mx-(mx-view.x)*k/view.k;view.y=my-(my-view.y)*k/view.k;view.k=k;render()},{passive:false});
+addEventListener('keydown',e=>{if(e.target.tagName=='INPUT'||e.target.tagName=='SELECT')return;if(e.key=='Delete'||e.key=='Backspace'){comps=comps.filter(c=>!sel.has(c.id));wires=wires.filter(w=>w.id!=selW&&get(w.a.split('.')[0])&&get(w.b.split('.')[0]));sel.clear();selW=null;ui()}if(e.key=='r'||e.key=='R'){sel.forEach(i=>{const c=get(i);c.rot=(c.rot+1)%4});ui()}});
+svg.addEventListener('dragover',e=>e.preventDefault());svg.addEventListener('drop',e=>{e.preventDefault();const t=e.dataTransfer.getData('text/plain');if(D[t]){const p=toW(e);const c=add(t,sn(p.x-40),sn(p.y-40));gsap.from(c,{glow:0});sel.clear();sel.add(c.id);ui()}});
+// ---- build UI
+ORDER.forEach(([h,l])=>{$('#lib').insertAdjacentHTML('beforeend',`<h4>${h}</h4>`);l.forEach(t=>{const d=D[t],e=document.createElement('div');e.className='lib';e.draggable=true;e.innerHTML=`<svg width="28" height="28" style="flex:none"><rect x="3" y="3" width="22" height="22" fill="${d.c}33" stroke="${d.c}"/>${d.pins.slice(0,4).map((p,i)=>`<circle cx="3" cy="${7+i*6}" r="1.8" fill="${K[p.k]}"/>`).join('')}</svg><div><b>${d.n}</b><small>${d.desc}</small><small>${d.pins.length} pins · ${d.pr}</small></div>`;e.ondragstart=ev=>ev.dataTransfer.setData('text/plain',t);e.onclick=()=>{const c=add(t,sn(-view.x/view.k+200),sn(-view.y/view.k+100));sel.clear();sel.add(c.id);ui()};$('#lib').appendChild(e)})});
+envUI();
+$('#dash').innerHTML=[['co2','CO₂','ppm'],['t','TEMP','°C'],['h','HUMIDITY','%'],['o2','O₂','%'],['pm25','PM2.5','µg/m³'],['iaq','IAQ','']].map(([k,n,u])=>`<div class="card">${n}<b id="v-${k}">—</b>${u}</div>`).join('');
+MET.forEach(m=>$('#gm').insertAdjacentHTML('beforeend',`<option value="${m[0]}">${m[1]}</option>`));
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x==b));['ser','code','dash','gw'].forEach(i=>$('#'+i).style.display=i==b.dataset.t?(i=='dash'?'flex':'block'):'none');drawG()});
+$('#bRun').onclick=runSim;$('#bPause').onclick=()=>{if(sim.st=='RUNNING'){sim.st='PAUSED';ui()}};$('#bReset').onclick=reset;$('#bOrtho').onclick=e=>{ortho=!ortho;e.target.textContent='WIRES: '+(ortho?'ORTHO':'STRAIGHT');render()};
+$('#bSave').onclick=()=>{try{localStorage.setItem('iot-sim',JSON.stringify({comps:comps.map(({id,type,x,y,rot})=>({id,type,x,y,rot})),wires}));toast('Saved (browser storage)')}catch(e){toast('Save unavailable')}};
+// ---- toolbar extras: speed, mode, presets, network, sensor reset
+['0.5','1','2','5'].forEach(s=>{const b=document.createElement('button');b.textContent=s+'×';if(s=='1')b.className='on';b.onclick=()=>{sim.speed=+s;document.querySelectorAll('#spd button').forEach(x=>x.classList.toggle('on',x==b))};$('#spd').appendChild(b)});
+[['circuit','Circuit'],['flow','Data flow'],['ai','AI pipeline']].forEach(([m,n])=>{const b=document.createElement('button');b.textContent=n;if(m=='circuit')b.className='on';b.onclick=()=>{mode=m;document.querySelectorAll('#modes button').forEach(x=>x.classList.toggle('on',x==b));render();ovl()};$('#modes').appendChild(b)});
+function preset(n){reset();comps=[];wires=[];sel.clear();selW=null;selPk=null;uid=1;manual=false;
+const u=add('uno',300,90),mk=[['sps30',30,20],['scd41',30,170],['bme688',30,320]];if(n>=2)mk.push(['mics',30,470]);if(n>=3)mk.push(['oled',800,40],['relay',800,190],['fan',970,210]);
+const cs2=mk.map(m=>add(m[0],m[1],m[2]));cs2.forEach(c=>suggest(c).forEach(([a,b])=>connect(a,b,true)));
+if(n>=3){const r=cs2.find(c=>c.type=='relay'),f=cs2.find(c=>c.type=='fan');connect(r.id+'.no',f.id+'.fp',true);connect(r.id+'.com',u.id+'.v5',true);connect(f.id+'.fn',u.id+'.gnd2',true)}
+view={x:30,y:20,k:.8};log('Preset '+n+' loaded');ui()}
+$('#pre').onchange=e=>{if(e.target.value)preset(+e.target.value);e.target.value=''};
+$('#bOff').onclick=()=>{sim.off=!sim.off;$('#bOff').textContent=sim.off?'Reconnect network':'Disconnect network';$('#bOff').classList.toggle('on',sim.off);log('Internet: '+(sim.off?'OFFLINE — edge pipeline continues locally':'ONLINE'));ui()};
+$('#bRst').onclick=()=>{Object.assign(tgt,ENV0);Object.assign(src,{t:0,c:0,k:0,b:0,v:0});for(const k in ov)delete ov[k];comps.forEach(c=>c.fault='');envUI();ui()};
+// ---- demo circuit
+function demo(){const E=add('esp32',380,150);E.id='esp';comps[0].id='esp';
+const S=[['mq135',50,0],['dht22',50,140],['scd41',50,280],['bme688',50,420]],ids={};
+S.forEach(([t,x,y])=>{const c=add(t,x,y);ids[t]=c.id});
+const pw=(id)=>{wr(id+'.vcc','esp.v33');wr(id+'.gnd','esp.gnd')};
+pw(ids.mq135);wr(ids.mq135+'.aout','esp.g34');pw(ids.dht22);wr(ids.dht22+'.data','esp.g4');
+[ids.scd41,ids.bme688].forEach(id=>{pw(id);wr(id+'.sda','esp.sda');wr(id+'.scl','esp.scl')});
+const la=add('lora_a',620,170),lb=add('lora_b',620,340),led=add('led',620,10);
+wr(la.id+'.vcc','esp.v5');wr(la.id+'.gnd','esp.gnd2');wr(la.id+'.tx','esp.rx');wr(la.id+'.rx','esp.tx');wr(lb.id+'.vcc','esp.v5');wr(lb.id+'.gnd','esp.gnd2');
+wr(led.id+'.a','esp.g5');wr(led.id+'.k','esp.gnd2');
+add('sps30',820,10);add('o2',820,170);add('mics',820,330);add('a7670',1000,10);add('ant',1000,230);add('uno',380,560)}
+demo();
+requestAnimationFrame(loop);ui();
+</script></body></html>
